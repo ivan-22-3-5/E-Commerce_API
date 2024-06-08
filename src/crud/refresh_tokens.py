@@ -20,8 +20,9 @@ async def add_token(user_id: int, token: str, db: AsyncSession):
 async def update_token(user_id: int, new_token: str, db: AsyncSession):
     result = await db.execute(select(models.RefreshToken).filter(models.RefreshToken.user_id ==user_id))
     db_token = result.scalars().first()
-    db_token.token = new_token
-    await db.commit()
+    if db_token:
+        db_token.token = new_token
+        await db.commit()
 
 
 async def delete_token(user_id: int, db: AsyncSession):
