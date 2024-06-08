@@ -1,1 +1,3 @@
 /src/.env
+/alembic/
+/alembic.ini
