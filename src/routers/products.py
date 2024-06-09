@@ -13,7 +13,7 @@ router = APIRouter(
 
 @router.post('', status_code=status.HTTP_201_CREATED, response_model=ProductOut)
 @admin_path
-async def create_product(product: ProductIn, db: db_dependency, user: cur_user_dependency):
+async def create_product(user: cur_user_dependency, product: ProductIn, db: db_dependency):
     return await products.create(product, db=db)
 
 

@@ -33,7 +33,7 @@ async def cancel_order(order_id: int, user: cur_user_dependency, db: db_dependen
 
 @router.patch('/{order_id}/status', status_code=status.HTTP_200_OK, response_model=Message)
 @admin_path
-async def change_order_status(order_id: int, new_status: OrderStatus, db: db_dependency, user: cur_user_dependency):
+async def change_order_status(user: cur_user_dependency, order_id: int, new_status: OrderStatus, db: db_dependency):
     if not await orders.get_by_id(order_id, db):
         raise ResourceDoesNotExistError("Order with the given id does not exist")
     await orders.update_status(order_id, new_status, db=db)
