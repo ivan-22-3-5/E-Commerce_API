@@ -1,6 +1,7 @@
 from datetime import datetime
+from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class Product(BaseModel):
@@ -22,3 +23,9 @@ class ProductOut(BaseModel):
     title: str
     description: str
     price: float
+
+
+class ProductUpdate(BaseModel):
+    title: Optional[str] = Field(default=None)
+    description: Optional[str] = Field(default=None)
+    price: Optional[float] = Field(default=None)
