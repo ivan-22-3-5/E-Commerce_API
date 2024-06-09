@@ -11,6 +11,11 @@ async def get_by_id(product_id: int, db: AsyncSession) -> models.Product | None:
     return product
 
 
+async def get_all(db: AsyncSession) -> list[models.Product] | None:
+    result = await db.execute(select(models.Product))
+    return result.scalars().all()
+
+
 async def create(product: ProductIn, db: AsyncSession) -> models.Product | None:
     new_product = models.Product(
         **product.model_dump()

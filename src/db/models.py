@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Literal
 
 from sqlalchemy import Integer, String, TIMESTAMP, ForeignKey, Float, Boolean, Enum
 from sqlalchemy.orm import Mapped
@@ -43,13 +42,7 @@ class Order(Base):
     __tablename__ = 'orders'
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), nullable=False)
-    status: Mapped[Literal[
-        OrderStatus.PENDING,
-        OrderStatus.SHIPPED,
-        OrderStatus.CONFIRMED,
-        OrderStatus.DELIVERED,
-        OrderStatus.CANCELLED
-    ]] = mapped_column(Enum(OrderStatus), nullable=False)
+    status: Mapped[OrderStatus] = mapped_column(Enum(OrderStatus), nullable=False)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey('users.id'))
     product_id: Mapped[int] = mapped_column(Integer, ForeignKey('products.id'))
 
