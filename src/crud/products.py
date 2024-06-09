@@ -34,3 +34,10 @@ async def update(product_id: int, product_update: ProductUpdate, db: AsyncSessio
         await db.commit()
         await db.refresh(product)
         return product
+
+
+async def delete(product_id: int, db: AsyncSession) -> None:
+    product = await get_by_id(product_id, db)
+    if product:
+        await db.delete(product)
+        await db.commit()

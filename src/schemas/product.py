@@ -9,6 +9,7 @@ class Product(BaseModel):
     title: str
     description: str
     price: float
+    enabled: bool
     created_at: datetime
 
 
@@ -29,3 +30,4 @@ class ProductUpdate(BaseModel):
     title: Optional[str] = Field(default=None)
     description: Optional[str] = Field(default=None)
     price: Optional[float] = Field(default=None)
+    enabled: Optional[bool] = Field(default=None)

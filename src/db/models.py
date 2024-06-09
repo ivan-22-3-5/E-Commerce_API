@@ -63,12 +63,13 @@ class Product(Base):
     description: Mapped[str] = mapped_column(String, nullable=False)
     price: Mapped[float] = mapped_column(Float, nullable=False)
     created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), nullable=False)
+    enabled: Mapped[bool] = mapped_column(Boolean, nullable=False)
 
-    orders = relationship('Order', back_populates='product')
+    orders = relationship('Order', back_populates='product', cascade="all, delete")
 
     def __init__(self, title: str, description: str, price: float):
         self.title = title
         self.description = description
         self.price = price
         self.created_at = datetime.now()
-
+        self.enabled = True

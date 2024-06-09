@@ -26,7 +26,7 @@ async def cancel_order(order_id: int, user: cur_user_dependency, db: db_dependen
     if (order := await orders.get_by_id(order_id, db)) is None:
         raise ResourceDoesNotExistError("Order with the given id does not exist")
     if order.user_id != user.id:
-        raise NotEnoughRightsError("User is not order owner")
+        raise NotEnoughRightsError("User is not the order owner")
     await orders.update_status(order_id, OrderStatus.CANCELLED, db=db)
     return Message(message="The order cancelled")
 
