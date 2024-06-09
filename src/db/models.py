@@ -22,6 +22,13 @@ class User(Base):
     refresh_token = relationship('RefreshToken', back_populates='user')
     orders = relationship('Order', back_populates='user')
 
+    def __init__(self, email: str, password: str, username: str):
+        self.email = email
+        self.password = password
+        self.username = username
+        self.created_at = datetime.now()
+        self.is_admin = False
+
 
 class RefreshToken(Base):
     __tablename__ = 'refresh_tokens'
@@ -49,6 +56,12 @@ class Order(Base):
     user = relationship('User', back_populates='orders')
     product = relationship('Product', back_populates='orders')
 
+    def __init__(self, user_id: int, product_id: int):
+        self.created_at = datetime.now()
+        self.status = OrderStatus.PENDING
+        self.user_id = user_id
+        self.product_id = product_id
+
 
 class Product(Base):
     __tablename__ = 'products'
@@ -59,3 +72,10 @@ class Product(Base):
     created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), nullable=False)
 
     orders = relationship('Order', back_populates='product')
+
+    def __init__(self, title: str, description: str, price: float):
+        self.title = title
+        self.description = description
+        self.price = price
+        self.created_at = datetime.now()
+

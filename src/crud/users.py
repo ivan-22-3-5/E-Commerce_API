@@ -1,5 +1,3 @@
-from datetime import datetime, UTC
-
 from pydantic import EmailStr
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -31,11 +29,8 @@ async def get_orders_by_user_id(user_id: int, db: AsyncSession) -> list[Order] |
 
 async def create(user: UserIn, db: AsyncSession) -> models.User:
     new_user = models.User(
-        email=user.email,
+        **user.model_dump(exclude={'password'}),
         password=hash_pass(user.password),
-        username=user.username,
-        created_at=datetime.now(UTC),
-        is_admin=False
     )
     db.add(new_user)
     await db.commit()

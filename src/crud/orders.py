@@ -1,9 +1,6 @@
-from datetime import datetime, UTC
-
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.custom_types import OrderStatus
 from src.db import models
 from src.schemas.order import OrderIn
 
@@ -17,9 +14,7 @@ async def get_by_id(order_id: int, db: AsyncSession) -> models.Order | None:
 async def create(order: OrderIn, user_id: int, db: AsyncSession) -> models.Order | None:
     new_order = models.Order(
         user_id=user_id,
-        product_id=order.product_id,
-        created_at=datetime.now(UTC),
-        status=OrderStatus.PENDING
+        **order.model_dump()
     )
     db.add(new_order)
     await db.commit()

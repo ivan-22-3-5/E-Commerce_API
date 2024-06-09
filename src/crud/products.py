@@ -1,5 +1,3 @@
-from datetime import datetime, UTC
-
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -15,10 +13,7 @@ async def get_by_id(product_id: int, db: AsyncSession) -> models.Product | None:
 
 async def create(product: ProductIn, db: AsyncSession) -> models.Product | None:
     new_product = models.Product(
-        title=product.title,
-        description=product.description,
-        price=product.price,
-        created_at=datetime.now(UTC)
+        **product.model_dump()
     )
     db.add(new_product)
     await db.commit()
