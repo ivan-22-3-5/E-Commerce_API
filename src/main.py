@@ -11,7 +11,7 @@ from src.routers import auth, users, orders, products
 from src.custom_exceptions import (
     ECommerceApiError,
     ResourceDoesNotExistError,
-    ResourceAlreadyExistError,
+    ResourceAlreadyExistsError,
     NotEnoughRightsError,
     InvalidTokenError,
     InvalidCredentialsError,
@@ -58,7 +58,7 @@ app.add_exception_handler(
 )
 
 app.add_exception_handler(
-    exc_class_or_status_code=ResourceAlreadyExistError,
+    exc_class_or_status_code=ResourceAlreadyExistsError,
     handler=create_exception_handler(status.HTTP_409_CONFLICT, "Resource already exists")
 )
 

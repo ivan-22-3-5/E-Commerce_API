@@ -4,7 +4,7 @@ from src.crud import users
 from src.schemas.order import OrderOut
 from src.schemas.user import UserIn, UserOut
 from src.deps import cur_user_dependency, db_dependency
-from src.custom_exceptions import ResourceAlreadyExistError
+from src.custom_exceptions import ResourceAlreadyExistsError
 
 router = APIRouter(
     prefix='/users',
@@ -15,7 +15,7 @@ router = APIRouter(
 @router.post('', status_code=status.HTTP_201_CREATED, response_model=UserOut)
 async def create_user(user: UserIn, db: db_dependency):
     if await users.get_by_email(user.email, db=db):
-        raise ResourceAlreadyExistError("Email is already registered")
+        raise ResourceAlreadyExistsError("Email is already registered")
     return await users.create(user, db=db)
 
 

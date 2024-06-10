@@ -1,43 +1,31 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.crud import base
 from src.db import models
 from src.schemas.product import ProductIn, ProductUpdate
 
 
 async def get_by_id(product_id: int, db: AsyncSession) -> models.Product | None:
-    result = await db.execute(select(models.Product).filter(models.Product.id == product_id))
-    product = result.scalars().first()
-    return product
+    return await base.get_one(select(models.Product).filter(models.Product.id == product_id), db)
 
 
-async def get_all(db: AsyncSession) -> list[models.Product] | None:
-    result = await db.execute(select(models.Product))
-    return result.scalars().all()
+async def get(*, enabled: bool | None = None, db: AsyncSession) -> list[models.Product] | None:
+    query = await select(models.Product)
+    if enabled is not None:
+        query = query.filter(models.Product.enabled == enabled)
+    return await base.get_all(query, db)
 
 
 async def create(product: ProductIn, db: AsyncSession) -> models.Product | None:
-    new_product = models.Product(
+    return await base.create(models.Product(
         **product.model_dump()
-    )
-    db.add(new_product)
-    await db.commit()
-    await db.refresh(new_product)
-    return new_product
+    ), db)
 
 
 async def update(product_id: int, product_update: ProductUpdate, db: AsyncSession) -> models.Product | None:
-    product = await get_by_id(product_id, db)
-    if product:
-        for k, v in product_update.model_dump(exclude_none=True).items():
-            setattr(product, k, v)
-        await db.commit()
-        await db.refresh(product)
-        return product
+    return await base.update(select(models.Product).filter(models.Product.id == product_id), product_update, db)
 
 
 async def delete(product_id: int, db: AsyncSession) -> None:
-    product = await get_by_id(product_id, db)
-    if product:
-        await db.delete(product)
-        await db.commit()
+    await base.delete(select(models.Product).filter(models.Product.id == product_id), db)
