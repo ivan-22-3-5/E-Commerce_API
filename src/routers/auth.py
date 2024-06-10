@@ -29,9 +29,9 @@ async def login(user_credentials: Annotated[OAuth2PasswordRequestForm, Depends()
     refresh_token = create_jwt_token(data={"sub": str(user.id)},
                                      expires_in=timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS))
     if await refresh_tokens.get_by_user_id(user.id, db=db):
-        await refresh_tokens.update_token(user_id=user.id, new_token=refresh_token, db=db)
+        await refresh_tokens.update(user_id=user.id, new_token=refresh_token, db=db)
     else:
-        await refresh_tokens.add_token(user_id=user.id, token=refresh_token, db=db)
+        await refresh_tokens.add(user_id=user.id, token=refresh_token, db=db)
     response.set_cookie(key="refresh_token",
                         value=refresh_token,
                         httponly=True,
@@ -54,7 +54,7 @@ async def refresh(req: Request, res: Response, db: db_dependency):
                                     expires_in=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES))
     refresh_token = create_jwt_token(data={"sub": str(user_id)},
                                      expires_in=timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS))
-    await refresh_tokens.update_token(user_id=user_id, new_token=refresh_token, db=db)
+    await refresh_tokens.update(user_id=user_id, new_token=refresh_token, db=db)
     res.set_cookie(key="refresh_token",
                    value=refresh_token,
                    httponly=True,
@@ -67,6 +67,6 @@ async def refresh(req: Request, res: Response, db: db_dependency):
 @router.delete('/logout', response_model=Message)
 async def refresh(token: token_dependency, res: Response, db: db_dependency):
     user_id = get_user_id_from_jwt(token)
-    await refresh_tokens.delete_token(user_id=user_id, db=db)
+    await refresh_tokens.delete(user_id=user_id, db=db)
     res.delete_cookie('refresh_token')
     return Message(message='logged out')

@@ -9,7 +9,7 @@ class ResourceDoesNotExistError(ECommerceApiError):
     pass
 
 
-class ResourceAlreadyExistError(ECommerceApiError):
+class ResourceAlreadyExistsError(ECommerceApiError):
     pass
 
 
