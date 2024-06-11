@@ -1,6 +1,9 @@
+from typing import Optional
+
 from fastapi import APIRouter, status
 
-from src.crud import users, orders, reviews
+from src.crud import users, orders, reviews, carts
+from src.schemas.cart import Cart, CartItem
 from src.schemas.order import OrderOut
 from src.schemas.review import ReviewOut
 from src.schemas.user import UserIn, UserOut
@@ -33,3 +36,24 @@ async def get_my_orders(user: cur_user_dependency, db: db_dependency):
 @router.get('/me/reviews', response_model=list[ReviewOut], status_code=status.HTTP_200_OK)
 async def get_my_reviews(user: cur_user_dependency, db: db_dependency):
     return await reviews.get_by_user(user.id, db)
+
+
+@router.get('/me/cart', response_model=Cart, status_code=status.HTTP_200_OK)
+async def get_my_cart(user: cur_user_dependency, db: db_dependency):
+    return await carts.get_by_user(user.id, db)
+
+
+@router.post('/me/cart/items', response_model=Optional[Cart], status_code=status.HTTP_200_OK)
+async def add_item_to_cart(user: cur_user_dependency, item: CartItem, db: db_dependency):
+    return await carts.add_item(user.id, item, db)
+
+
+@router.delete('/me/cart/items', response_model=Optional[Cart], status_code=status.HTTP_200_OK)
+async def remove_item_from_cart(user: cur_user_dependency, item: CartItem, db: db_dependency):
+    return await carts.remove_item(user.id, item, db)
+
+
+@router.delete('/me/cart', response_model=Cart, status_code=status.HTTP_200_OK)
+async def clear_cart(user: cur_user_dependency, db: db_dependency):
+    return await carts.clear(user.id, db)
+

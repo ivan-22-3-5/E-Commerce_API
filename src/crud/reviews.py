@@ -10,7 +10,7 @@ async def get_by_id(review_id: int, db: AsyncSession) -> models.Review | None:
     return await base.get_one(select(models.Review).filter(models.Review.id == review_id), db)
 
 
-async def get_by_user(user_id: int, db: AsyncSession):
+async def get_by_user(user_id: int, db: AsyncSession) -> list[models.Review]:
     return await base.get_all(select(models.User).filter(models.Review.user_id == user_id), db)
 
 

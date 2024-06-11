@@ -25,7 +25,7 @@ class User(Base):
     created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), nullable=False)
     is_admin: Mapped[bool] = mapped_column(Boolean, nullable=False)
 
-    refresh_token = relationship('RefreshToken', back_populates='user', uselist=False)
+    refresh_token = relationship('RefreshToken', back_populates='user', uselist=False, cascade='all, delete')
     orders = relationship('Order', back_populates='user')
     reviews = relationship('Review', back_populates='user')
     addresses = relationship('Address', back_populates='user')
@@ -76,10 +76,10 @@ class CartItem(Base):
     cart_id: Mapped[int] = mapped_column(Integer, ForeignKey('carts.id'), nullable=False)
     quantity: Mapped[int] = mapped_column(Integer, nullable=False)
 
-    def __init__(self, product_id: int, cart_id: int):
+    def __init__(self, product_id: int, cart_id: int, quantity: int = 1):
         self.product_id = product_id
         self.cart_id = cart_id
-        self.quantity = 0
+        self.quantity = quantity
 
 
 class Order(Base):
