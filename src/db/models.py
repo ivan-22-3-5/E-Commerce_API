@@ -11,8 +11,7 @@ from src.db.db import Base
 product_category_association = Table(
     'product_category_association', Base.metadata,
     Column('product_id', Integer, ForeignKey('products.id'), primary_key=True),
-    Column('category_name', String, ForeignKey('categories.name'), primary_key=True),
-    PrimaryKeyConstraint('product_id', 'category_name')
+    Column('category_name', String, ForeignKey('categories.name'), primary_key=True)
 )
 
 
