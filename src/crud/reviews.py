@@ -10,6 +10,10 @@ async def get_by_id(review_id: int, db: AsyncSession) -> models.Review | None:
     return await base.get_one(select(models.Review).filter(models.Review.id == review_id), db)
 
 
+async def get_by_user(user_id: int, db: AsyncSession):
+    return await base.get_all(select(models.User).filter(models.Review.user_id == user_id), db)
+
+
 async def create(product_id: int, user_id: int, review: ReviewIn, db: AsyncSession) -> models.Review | None:
     return await base.create(models.Review(
         product_id=product_id,

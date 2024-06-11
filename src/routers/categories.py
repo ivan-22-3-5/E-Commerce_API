@@ -1,7 +1,7 @@
 from fastapi import APIRouter, status
 
 from src.constraints import admin_path
-from src.crud import categories
+from src.crud import categories, products
 from src.schemas.category import CategoryIn
 from src.schemas.message import Message
 from src.deps import cur_user_dependency, db_dependency
@@ -29,3 +29,14 @@ async def delete_category(user: cur_user_dependency, category_name: str, db: db_
         raise ResourceDoesNotExistError("Category with the given name does not exist")
     await categories.delete(category_name, db)
     return Message(message=f"Category {category_name} has been successfully deleted")
+
+
+@router.post('/{category_name}/products/{product_id}', status_code=status.HTTP_200_OK, response_model=Message)
+@admin_path
+async def link_category_to_product(user: cur_user_dependency, category_name: str, product_id: int, db: db_dependency):
+    if not await categories.get_by_name(category_name, db):
+        raise ResourceDoesNotExistError("Category with the given name does not exist")
+    if (product := await products.get_by_id(product_id, db)) is None:
+        raise ResourceDoesNotExistError("Product with the given id does not exist")
+    await categories.add_product(category_name, product, db)
+    return Message(message=f"Category {category_name} has been successfully linked to product with id {product_id}")
