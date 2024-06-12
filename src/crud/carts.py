@@ -20,7 +20,7 @@ async def add_item(user_id: int, item: CartItem, db: AsyncSession) -> models.Car
         if existing_item:
             existing_item.quantity += item.quantity
         else:
-            new_item = CartItem(**item.model_dump(), cart_id=cart.id)
+            new_item = models.CartItem(**item.model_dump(), cart_id=cart.id)
             cart.items.append(new_item)
         await db.commit()
         await db.refresh(cart)
