@@ -11,7 +11,7 @@ async def get_by_id(product_id: int, db: AsyncSession) -> models.Product | None:
 
 
 async def get(*, enabled: bool | None = None, db: AsyncSession) -> list[models.Product] | None:
-    query = await select(models.Product)
+    query = select(models.Product)
     if enabled is not None:
         query = query.filter(models.Product.enabled == enabled)
     return await base.get_all(query, db)
