@@ -37,4 +37,4 @@ async def get_inactive_products(user: cur_user_dependency, db: db_dependency):
 
 @router.get('', status_code=status.HTTP_200_OK, response_model=list[ProductOut])
 async def get_active_products(db: db_dependency):
-    return await products.get(db=db, enabled=False)
+    return await products.get(db=db, enabled=True)
