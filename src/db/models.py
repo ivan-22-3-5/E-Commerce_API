@@ -66,11 +66,30 @@ class Cart(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey('users.id'), unique=True, nullable=False)
 
-    items = relationship('CartItem')
+    items = relationship('CartItem', cascade="all, delete-orphan")
 
     @hybrid_property
     def total_price(self):
         return sum(item.total_price for item in self.items)
+
+    def add_item(self, product_id: int, quantity: int):
+        existing_item = next((item for item in self.items if item.product_id == product_id), None)
+        if existing_item:
+            existing_item.quantity += quantity
+        else:
+            new_item = CartItem(product_id=product_id, quantity=quantity, cart_id=self.id)
+            self.items.append(new_item)
+
+    def remove_item(self, product_id: int, quantity: int):
+        existing_item = next((item for item in self.items if item.product_id == product_id), None)
+        if existing_item:
+            if existing_item.quantity <= quantity:
+                self.items.remove(existing_item)
+            else:
+                existing_item.quantity -= quantity
+
+    def clear(self):
+        self.items = []
 
 
 class CartItem(Base):

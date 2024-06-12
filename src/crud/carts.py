@@ -4,7 +4,7 @@ from sqlalchemy.orm import joinedload
 
 from src.crud import base, products
 from src.db import models
-from src.schemas.cart import CartItem, CartItemIn
+from src.schemas.cart import CartItemIn
 
 
 async def get_by_user(user_id: int, db: AsyncSession) -> models.Cart | None:
@@ -16,12 +16,7 @@ async def get_by_user(user_id: int, db: AsyncSession) -> models.Cart | None:
 async def add_item(user_id: int, item: CartItemIn, db: AsyncSession) -> models.Cart | None:
     cart = await get_by_user(user_id, db)
     if cart and await products.get_by_id(item.product_id, db):
-        existing_item = next((i for i in cart.items if i.product_id == item.product_id), None)
-        if existing_item:
-            existing_item.quantity += item.quantity
-        else:
-            new_item = models.CartItem(**item.model_dump(), cart_id=cart.id)
-            cart.items.append(new_item)
+        cart.add_item(**item.model_dump())
         await db.commit()
         await db.refresh(cart)
         return cart
@@ -30,12 +25,7 @@ async def add_item(user_id: int, item: CartItemIn, db: AsyncSession) -> models.C
 async def remove_item(user_id: int, item: CartItemIn, db: AsyncSession) -> models.Cart | None:
     cart = await get_by_user(user_id, db)
     if cart:
-        existing_item = next((i for i in cart.items if i.product_id == item.product_id), None)
-        if existing_item:
-            if existing_item.quantity <= item.quantity:
-                await db.delete(existing_item)
-            else:
-                existing_item.quantity -= item.quantity
+        cart.remove_item(**item.model_dump())
         await db.commit()
         await db.refresh(cart)
         return cart
@@ -44,7 +34,7 @@ async def remove_item(user_id: int, item: CartItemIn, db: AsyncSession) -> model
 async def clear(user_id: int, db: AsyncSession) -> models.Cart | None:
     cart = await get_by_user(user_id, db)
     if cart:
-        cart.items = []
+        cart.clear()
         await db.commit()
         await db.refresh(cart)
         return cart
