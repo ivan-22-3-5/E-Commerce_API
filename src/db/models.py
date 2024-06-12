@@ -60,38 +60,6 @@ class RefreshToken(Base):
 
     user = relationship('User', back_populates='refresh_token', uselist=False)
 
-
-class Cart(Base):
-    __tablename__ = 'carts'
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey('users.id'), unique=True, nullable=False)
-
-    items = relationship('CartItem', cascade="all, delete-orphan")
-
-    @hybrid_property
-    def total_price(self):
-        return sum(item.total_price for item in self.items)
-
-    def add_item(self, product_id: int, quantity: int):
-        existing_item = next((item for item in self.items if item.product_id == product_id), None)
-        if existing_item:
-            existing_item.quantity += quantity
-        else:
-            new_item = CartItem(product_id=product_id, quantity=quantity, cart_id=self.id)
-            self.items.append(new_item)
-
-    def remove_item(self, product_id: int, quantity: int):
-        existing_item = next((item for item in self.items if item.product_id == product_id), None)
-        if existing_item:
-            if existing_item.quantity <= quantity:
-                self.items.remove(existing_item)
-            else:
-                existing_item.quantity -= quantity
-
-    def clear(self):
-        self.items = []
-
-
 class CartItem(Base):
     __tablename__ = 'cart_items'
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -105,10 +73,39 @@ class CartItem(Base):
     def total_price(self):
         return self.product.price * self.quantity
 
-    def __init__(self, product_id: int, cart_id: int, quantity: int = 1):
+    def __init__(self, product_id: int, quantity: int = 1):
         self.product_id = product_id
-        self.cart_id = cart_id
         self.quantity = quantity
+
+
+class Cart(Base):
+    __tablename__ = 'carts'
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey('users.id'), unique=True, nullable=False)
+
+    items = relationship('CartItem', cascade="all, delete-orphan")
+
+    @hybrid_property
+    def total_price(self):
+        return sum(item.total_price for item in self.items)
+
+    def add_item(self, new_item: CartItem):
+        existing_item = next((item for item in self.items if item.product_id == new_item.product_id), None)
+        if existing_item:
+            existing_item.quantity += new_item.quantity
+        else:
+            self.items.append(new_item)
+
+    def remove_item(self, item_to_remove: CartItem):
+        existing_item = next((item for item in self.items if item.product_id == item_to_remove.product_id), None)
+        if existing_item:
+            if existing_item.quantity <= item_to_remove.quantity:
+                self.items.remove(existing_item)
+            else:
+                existing_item.quantity -= item_to_remove.quantity
+
+    def clear(self):
+        self.items = []
 
 
 class Order(Base):

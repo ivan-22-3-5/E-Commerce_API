@@ -16,7 +16,7 @@ async def get_by_user(user_id: int, db: AsyncSession) -> models.Cart | None:
 async def add_item(user_id: int, item: CartItemIn, db: AsyncSession) -> models.Cart | None:
     cart = await get_by_user(user_id, db)
     if cart and await products.get_by_id(item.product_id, db):
-        cart.add_item(**item.model_dump())
+        cart.add_item(models.CartItem(**item.model_dump()))
         await db.commit()
         await db.refresh(cart)
         return cart
@@ -25,7 +25,7 @@ async def add_item(user_id: int, item: CartItemIn, db: AsyncSession) -> models.C
 async def remove_item(user_id: int, item: CartItemIn, db: AsyncSession) -> models.Cart | None:
     cart = await get_by_user(user_id, db)
     if cart:
-        cart.remove_item(**item.model_dump())
+        cart.remove_item(models.CartItem(**item.model_dump()))
         await db.commit()
         await db.refresh(cart)
         return cart
