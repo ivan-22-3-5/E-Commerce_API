@@ -1,6 +1,7 @@
 from datetime import datetime
 
-from sqlalchemy import Integer, String, TIMESTAMP, ForeignKey, Float, Boolean, Enum, Table, Column, PrimaryKeyConstraint
+from sqlalchemy import Integer, String, TIMESTAMP, ForeignKey, Float, Boolean, Enum, Table, Column
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
@@ -67,6 +68,10 @@ class Cart(Base):
 
     items = relationship('CartItem')
 
+    @hybrid_property
+    def total_price(self):
+        return sum(item.total_price for item in self.items)
+
 
 class CartItem(Base):
     __tablename__ = 'cart_items'
@@ -74,6 +79,12 @@ class CartItem(Base):
     product_id: Mapped[int] = mapped_column(Integer, ForeignKey('products.id'), nullable=False)
     cart_id: Mapped[int] = mapped_column(Integer, ForeignKey('carts.id'), nullable=False)
     quantity: Mapped[int] = mapped_column(Integer, nullable=False)
+
+    product = relationship('Product', lazy="joined", uselist=False)
+
+    @hybrid_property
+    def total_price(self):
+        return self.product.price * self.quantity
 
     def __init__(self, product_id: int, cart_id: int, quantity: int = 1):
         self.product_id = product_id

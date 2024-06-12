@@ -4,7 +4,7 @@ from sqlalchemy.orm import joinedload
 
 from src.crud import base, products
 from src.db import models
-from src.schemas.cart import CartItem
+from src.schemas.cart import CartItem, CartItemIn
 
 
 async def get_by_user(user_id: int, db: AsyncSession) -> models.Cart | None:
@@ -13,7 +13,7 @@ async def get_by_user(user_id: int, db: AsyncSession) -> models.Cart | None:
                               options(joinedload(models.Cart.items)), db)
 
 
-async def add_item(user_id: int, item: CartItem, db: AsyncSession) -> models.Cart | None:
+async def add_item(user_id: int, item: CartItemIn, db: AsyncSession) -> models.Cart | None:
     cart = await get_by_user(user_id, db)
     if cart and await products.get_by_id(item.product_id, db):
         existing_item = next((i for i in cart.items if i.product_id == item.product_id), None)
@@ -27,7 +27,7 @@ async def add_item(user_id: int, item: CartItem, db: AsyncSession) -> models.Car
         return cart
 
 
-async def remove_item(user_id: int, item: CartItem, db: AsyncSession) -> models.Cart | None:
+async def remove_item(user_id: int, item: CartItemIn, db: AsyncSession) -> models.Cart | None:
     cart = await get_by_user(user_id, db)
     if cart:
         existing_item = next((i for i in cart.items if i.product_id == item.product_id), None)
