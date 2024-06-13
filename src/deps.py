@@ -5,9 +5,9 @@ from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.crud import users
+from src.db import models
 from src.db.db import get_db
 from src.utils import get_user_id_from_jwt
-from src.schemas.user import User
 
 oauth2_schema = OAuth2PasswordBearer(tokenUrl="auth/token")
 
@@ -20,4 +20,4 @@ async def get_current_user(token: token_dependency, db: db_dependency):
     return await users.get_by_id(get_user_id_from_jwt(token), db)
 
 
-cur_user_dependency = Annotated[User, Depends(get_current_user)]
+cur_user_dependency = Annotated[models.User, Depends(get_current_user)]

@@ -1,8 +1,8 @@
 from pydantic import BaseModel
 
-from src.schemas.item import Item
+from src.schemas.item import ItemOut
 
 
-class Cart(BaseModel):
-    items: list[Item]
+class CartOut(BaseModel):
+    items: list[ItemOut]
     total_price: float

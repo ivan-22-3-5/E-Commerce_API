@@ -3,15 +3,7 @@ from datetime import datetime
 from pydantic import BaseModel
 
 from src.custom_types import OrderStatus
-from src.schemas.item import Item, ItemIn
-
-
-class Order(BaseModel):
-    id: int
-    status: OrderStatus
-    created_at: datetime
-    user_id: int
-    address_id: int
+from src.schemas.item import ItemOut, ItemIn
 
 
 class OrderIn(BaseModel):
@@ -22,5 +14,7 @@ class OrderIn(BaseModel):
 class OrderOut(BaseModel):
     id: int
     address_id: int
+    status: OrderStatus
+    created_at: datetime
     total_price: float
-    items: list[Item]
+    items: list[ItemOut]

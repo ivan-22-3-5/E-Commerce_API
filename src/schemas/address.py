@@ -5,12 +5,20 @@ from pydantic import BaseModel, Field
 from src.schemas.base import ObjUpdate
 
 
-class AddressIn(BaseModel):
+class AddressBase(BaseModel):
     fullname: str
     country: str
     city: str
     street: str
     zipcode: int
+
+
+class AddressIn(AddressBase):
+    pass
+
+
+class AddressOut(AddressBase):
+    id: int
 
 
 class AddressUpdate(ObjUpdate):
@@ -19,11 +27,3 @@ class AddressUpdate(ObjUpdate):
     city: Optional[str] = Field(default=None)
     street: Optional[str] = Field(default=None)
     zipcode: Optional[int] = Field(default=None)
-
-
-class AddressOut(BaseModel):
-    fullname: str
-    country: str
-    city: str
-    street: str
-    zipcode: int

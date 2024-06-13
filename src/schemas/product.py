@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import Optional
 
 from pydantic import BaseModel, Field
@@ -6,26 +5,18 @@ from pydantic import BaseModel, Field
 from src.schemas.base import ObjUpdate
 
 
-class Product(BaseModel):
-    id: int
+class ProductBase(BaseModel):
     title: str
     description: str
     price: float
-    enabled: bool
-    created_at: datetime
 
 
-class ProductIn(BaseModel):
-    title: str
-    description: str
-    price: float
+class ProductIn(ProductBase):
+    pass
 
 
 class ProductOut(BaseModel):
     id: int
-    title: str
-    description: str
-    price: float
 
 
 class ProductUpdate(ObjUpdate):
