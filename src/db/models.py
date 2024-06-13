@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, UTC
 
 from sqlalchemy import Integer, String, TIMESTAMP, ForeignKey, Float, Boolean, Enum, Table, Column
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -22,21 +22,14 @@ class User(Base):
     email: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     password: Mapped[str] = mapped_column(String, nullable=False)
     username: Mapped[str] = mapped_column(String, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), nullable=False)
-    is_admin: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), default=lambda: datetime.now(UTC), nullable=False)
+    is_admin: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     refresh_token = relationship('RefreshToken', back_populates='user', uselist=False, cascade='all, delete')
     orders = relationship('Order', back_populates='user')
     reviews = relationship('Review', back_populates='user')
     addresses = relationship('Address', back_populates='user')
     cart = relationship('Cart', uselist=False)
-
-    def __init__(self, email: str, password: str, username: str):
-        self.email = email
-        self.password = password
-        self.username = username
-        self.created_at = datetime.now()
-        self.is_admin = False
 
 
 class Address(Base):
@@ -66,17 +59,13 @@ class CartItem(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     product_id: Mapped[int] = mapped_column(Integer, ForeignKey('products.id'), nullable=False)
     cart_id: Mapped[int] = mapped_column(Integer, ForeignKey('carts.id'), nullable=False)
-    quantity: Mapped[int] = mapped_column(Integer, nullable=False)
+    quantity: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
 
     product = relationship('Product', lazy="joined", uselist=False)
 
     @hybrid_property
     def total_price(self):
         return self.product.price * self.quantity
-
-    def __init__(self, product_id: int, quantity: int = 1):
-        self.product_id = product_id
-        self.quantity = quantity
 
 
 class Cart(Base):
@@ -113,17 +102,13 @@ class OrderItem(Base):
     __tablename__ = 'order_items'
     order_id: Mapped[int] = mapped_column(Integer, ForeignKey('orders.id'), primary_key=True)
     product_id: Mapped[int] = mapped_column(Integer, ForeignKey('products.id'), primary_key=True)
-    quantity: Mapped[int] = mapped_column(Integer, nullable=False)
+    quantity: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
 
     product = relationship('Product', lazy="joined", uselist=False)
 
     @hybrid_property
     def total_price(self):
         return self.product.price * self.quantity
-
-    def __init__(self, product_id: int, quantity: int = 1):
-        self.product_id = product_id
-        self.quantity = quantity
 
 
 class Order(Base):
@@ -136,7 +121,7 @@ class Order(Base):
 
     user = relationship('User', back_populates='orders', uselist=False)
     address = relationship('Address', uselist=False)
-    items = relationship('OrderItem', lazy='joined')
+    items = relationship('OrderItem', lazy='selectin')
 
     @hybrid_property
     def total_price(self):
@@ -156,30 +141,19 @@ class Product(Base):
     title: Mapped[str] = mapped_column(String, nullable=False)
     description: Mapped[str] = mapped_column(String, nullable=False)
     price: Mapped[float] = mapped_column(Float, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), nullable=False)
-    enabled: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), default=lambda: datetime.now(UTC), nullable=False)
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
     categories = relationship('Category', back_populates='products', secondary=product_category_association)
     reviews = relationship('Review', back_populates='product')
-
-    def __init__(self, title: str, description: str, price: float):
-        self.title = title
-        self.description = description
-        self.price = price
-        self.created_at = datetime.now()
-        self.enabled = True
 
 
 class Category(Base):
     __tablename__ = 'categories'
     name: Mapped[str] = mapped_column(String, primary_key=True)
-    created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), default=lambda: datetime.now(UTC), nullable=False)
 
     products = relationship('Product', back_populates='categories', secondary=product_category_association)
-
-    def __init__(self, name: str):
-        self.name = name
-        self.created_at = datetime.now()
 
 
 class Review(Base):
@@ -189,14 +163,7 @@ class Review(Base):
     product_id: Mapped[int] = mapped_column(Integer, ForeignKey('products.id'))
     rating: Mapped[int] = mapped_column(Integer, nullable=False)
     content: Mapped[str] = mapped_column(String, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), default=lambda: datetime.now(UTC), nullable=False)
 
     product = relationship('Product', back_populates='reviews', uselist=False)
     user = relationship('User', back_populates='reviews', uselist=False)
-
-    def __init__(self, user_id: int, product_id: int, rating: int, content: str):
-        self.user_id = user_id
-        self.product_id = product_id
-        self.rating = rating
-        self.content = content
-        self.created_at = datetime.now()
