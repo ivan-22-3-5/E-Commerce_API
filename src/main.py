@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse
 from src.config import settings
 from src.db import models
 from src.db.db import engine
-from src.routers import auth, users, orders, products, categories, reviews
+from src.routers import auth, users, orders, products, categories, reviews, addresses
 from src.custom_exceptions import (
     ECommerceApiError,
     ResourceDoesNotExistError,
@@ -43,6 +43,7 @@ app.include_router(orders.router)
 app.include_router(products.router)
 app.include_router(categories.router)
 app.include_router(reviews.router)
+app.include_router(addresses.router)
 
 
 def create_exception_handler(status_code, initial_detail) -> Callable[[Request, ECommerceApiError], JSONResponse]:

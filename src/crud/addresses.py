@@ -6,11 +6,11 @@ from src.db import models
 from src.schemas.address import AddressIn, AddressUpdate
 
 
-async def get_by_id(address_id: str, db: AsyncSession) -> models.Address | None:
+async def get_by_id(address_id: int, db: AsyncSession) -> models.Address | None:
     return await base.get_one(select(models.Address).filter(models.Address.id == address_id), db)
 
 
-async def create(user_id: int, address: AddressIn, db: AsyncSession) -> models.Address | None:
+async def create(address: AddressIn, user_id: int, db: AsyncSession) -> models.Address | None:
     return await base.create(models.Address(
         user_id=user_id,
         **address.model_dump()
@@ -21,5 +21,5 @@ async def update(address_id: int, address_update: AddressUpdate, db: AsyncSessio
     return await base.update(select(models.Address).filter(models.Address.id == address_id), address_update, db)
 
 
-async def delete(address_id: str, db: AsyncSession):
+async def delete(address_id: int, db: AsyncSession):
     await base.delete(select(models.Address).filter(models.Address.id == address_id), db)
