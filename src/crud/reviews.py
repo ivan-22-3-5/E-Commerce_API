@@ -11,7 +11,7 @@ async def get_by_id(review_id: int, db: AsyncSession) -> models.Review | None:
 
 
 async def get_by_user(user_id: int, db: AsyncSession) -> list[models.Review]:
-    return await base.get_all(select(models.User).filter(models.Review.user_id == user_id), db)
+    return await base.get_all(select(models.Review).filter(models.Review.user_id == user_id), db)
 
 
 async def create(product_id: int, user_id: int, review: ReviewIn, db: AsyncSession) -> models.Review | None:
