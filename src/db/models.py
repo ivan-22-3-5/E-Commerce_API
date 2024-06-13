@@ -60,6 +60,7 @@ class RefreshToken(Base):
 
     user = relationship('User', back_populates='refresh_token', uselist=False)
 
+
 class CartItem(Base):
     __tablename__ = 'cart_items'
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -108,24 +109,45 @@ class Cart(Base):
         self.items = []
 
 
+class OrderItem(Base):
+    __tablename__ = 'order_items'
+    order_id: Mapped[int] = mapped_column(Integer, ForeignKey('orders.id'), primary_key=True)
+    product_id: Mapped[int] = mapped_column(Integer, ForeignKey('products.id'), primary_key=True)
+    quantity: Mapped[int] = mapped_column(Integer, nullable=False)
+
+    product = relationship('Product', lazy="joined", uselist=False)
+
+    @hybrid_property
+    def total_price(self):
+        return self.product.price * self.quantity
+
+    def __init__(self, product_id: int, quantity: int = 1):
+        self.product_id = product_id
+        self.quantity = quantity
+
+
 class Order(Base):
     __tablename__ = 'orders'
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), nullable=False)
     status: Mapped[OrderStatus] = mapped_column(Enum(OrderStatus), nullable=False)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey('users.id'))
-    product_id: Mapped[int] = mapped_column(Integer, ForeignKey('products.id'))
     address_id: Mapped[int] = mapped_column(Integer, ForeignKey('addresses.id'))
 
     user = relationship('User', back_populates='orders', uselist=False)
-    product = relationship('Product', back_populates='orders', uselist=False)
     address = relationship('Address', uselist=False)
+    items = relationship('OrderItem', lazy='joined')
 
-    def __init__(self, user_id: int, product_id: int):
+    @hybrid_property
+    def total_price(self):
+        return sum(item.total_price for item in self.items)
+
+    def __init__(self, user_id: int, address_id: int, items: list[dict[int, int]]):
         self.created_at = datetime.now()
         self.status = OrderStatus.PENDING
         self.user_id = user_id
-        self.product_id = product_id
+        self.address_id = address_id
+        self.items = [OrderItem(**item) for item in items]
 
 
 class Product(Base):
@@ -137,7 +159,6 @@ class Product(Base):
     created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), nullable=False)
     enabled: Mapped[bool] = mapped_column(Boolean, nullable=False)
 
-    orders = relationship('Order', back_populates='product', cascade='all, delete')
     categories = relationship('Category', back_populates='products', secondary=product_category_association)
     reviews = relationship('Review', back_populates='product')
 

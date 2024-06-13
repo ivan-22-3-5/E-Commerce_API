@@ -1,17 +1,8 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
-
-class CartItemIn(BaseModel):
-    product_id: int
-    quantity: int = Field(gt=0)
-
-
-class CartItem(BaseModel):
-    product_id: int
-    quantity: int
-    total_price: float
+from src.schemas.item import Item
 
 
 class Cart(BaseModel):
-    items: list[CartItem]
+    items: list[Item]
     total_price: float
