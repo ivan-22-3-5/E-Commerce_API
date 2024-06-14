@@ -2,7 +2,8 @@ from typing import Optional
 
 from fastapi import APIRouter, status
 
-from src.crud import users, orders, reviews, carts
+from src.crud import users, orders, reviews, carts, addresses
+from src.schemas.address import AddressOut
 from src.schemas.cart import CartOut
 from src.schemas.item import ItemIn
 from src.schemas.order import OrderOut
@@ -37,6 +38,11 @@ async def get_my_orders(user: cur_user_dependency, db: db_dependency):
 @router.get('/me/reviews', response_model=list[ReviewOut], status_code=status.HTTP_200_OK)
 async def get_my_reviews(user: cur_user_dependency, db: db_dependency):
     return await reviews.get_by_user(user.id, db)
+
+
+@router.get('/me/addresses', response_model=list[AddressOut], status_code=status.HTTP_200_OK)
+async def get_my_addresses(user: cur_user_dependency, db: db_dependency):
+    return await addresses.get_by_user(user.id, db)
 
 
 @router.get('/me/cart', response_model=CartOut, status_code=status.HTTP_200_OK)

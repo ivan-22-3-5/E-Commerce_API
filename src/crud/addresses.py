@@ -10,6 +10,10 @@ async def get_by_id(address_id: int, db: AsyncSession) -> models.Address | None:
     return await base.get_one(select(models.Address).filter(models.Address.id == address_id), db)
 
 
+async def get_by_user(user_id: int, db: AsyncSession) -> models.Address | None:
+    return await base.get_all(select(models.Address).filter(models.Address.user_id == user_id), db)
+
+
 async def create(address: AddressIn, user_id: int, db: AsyncSession) -> models.Address | None:
     return await base.create(models.Address(
         user_id=user_id,
