@@ -1,7 +1,7 @@
 from fastapi import APIRouter, status
 
 from src.constraints import admin_path
-from src.crud import orders, products
+from src.crud import orders, products, addresses
 from src.custom_types import OrderStatus
 from src.schemas.message import Message
 from src.schemas.order import OrderIn, OrderOut
@@ -16,6 +16,10 @@ router = APIRouter(
 
 @router.post('', status_code=status.HTTP_201_CREATED, response_model=OrderOut)
 async def create_order(order: OrderIn, user: cur_user_dependency, db: db_dependency):
+    if (address := await addresses.get_by_id(order.address_id, db)) is None:
+        raise ResourceDoesNotExistError("Address with the given id does not exist")
+    if address.user_id != user.id:
+        raise NotEnoughRightsError("Address does not belong to the user")
     for item in order.items:
         if not await products.get_by_id(item.product_id, db):
             raise ResourceDoesNotExistError("Product with the given id does not exist")

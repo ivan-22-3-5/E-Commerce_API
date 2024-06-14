@@ -34,9 +34,11 @@ async def delete_category(user: cur_user_dependency, category_name: str, db: db_
 @router.post('/{category_name}/products/{product_id}', status_code=status.HTTP_200_OK, response_model=Message)
 @admin_path
 async def link_category_to_product(user: cur_user_dependency, category_name: str, product_id: int, db: db_dependency):
-    if not await categories.get_by_name(category_name, db):
+    if (category := await categories.get_by_name(category_name, db)) is None:
         raise ResourceDoesNotExistError("Category with the given name does not exist")
     if (product := await products.get_by_id(product_id, db)) is None:
         raise ResourceDoesNotExistError("Product with the given id does not exist")
+    if category in product.categories:
+        raise ResourceAlreadyExistsError(f"Product is already associated with the {category_name} category")
     await categories.add_product(category_name, product, db)
     return Message(message=f"Category {category_name} has been successfully linked to product with id {product_id}")

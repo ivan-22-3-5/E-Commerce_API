@@ -26,11 +26,8 @@ class User(Base):
                                                  nullable=False)
     is_admin: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
-    refresh_token = relationship('RefreshToken', back_populates='user', uselist=False, cascade='all, delete')
-    orders = relationship('Order', back_populates='user')
-    reviews = relationship('Review', back_populates='user')
-    addresses = relationship('Address', back_populates='user')
-    cart = relationship('Cart', uselist=False)
+    refresh_token = relationship('RefreshToken', uselist=False, cascade='all, delete')
+    reviews = relationship('Review')
 
 
 class Address(Base):
@@ -41,28 +38,22 @@ class Address(Base):
     country: Mapped[str] = mapped_column(String, nullable=False)
     city: Mapped[str] = mapped_column(String, nullable=False)
     street: Mapped[str] = mapped_column(String, nullable=False)
-    zipcode: Mapped[int] = mapped_column(Integer, nullable=False)
-
-    user = relationship('User', back_populates='addresses', uselist=False)
+    zipcode: Mapped[str] = mapped_column(String, nullable=False)
 
 
 class RefreshToken(Base):
     __tablename__ = 'refresh_tokens'
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey('users.id'), unique=True, nullable=False)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey('users.id'), primary_key=True)
     token: Mapped[str] = mapped_column(String, nullable=False)
-
-    user = relationship('User', back_populates='refresh_token', uselist=False)
 
 
 class CartItem(Base):
     __tablename__ = 'cart_items'
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    product_id: Mapped[int] = mapped_column(Integer, ForeignKey('products.id'), nullable=False)
-    cart_id: Mapped[int] = mapped_column(Integer, ForeignKey('carts.id'), nullable=False)
+    cart_id: Mapped[int] = mapped_column(Integer, ForeignKey('carts.id'), primary_key=True)
+    product_id: Mapped[int] = mapped_column(Integer, ForeignKey('products.id'), primary_key=True)
     quantity: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
 
-    product = relationship('Product', lazy="joined", uselist=False)
+    product = relationship('Product', lazy="selectin", uselist=False)
 
     @hybrid_property
     def total_price(self):
@@ -74,7 +65,7 @@ class Cart(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey('users.id'), unique=True, nullable=False)
 
-    items = relationship('CartItem', cascade="all, delete-orphan")
+    items = relationship('CartItem', lazy="selectin", cascade="all, delete-orphan")
 
     @hybrid_property
     def total_price(self):
@@ -105,7 +96,7 @@ class OrderItem(Base):
     product_id: Mapped[int] = mapped_column(Integer, ForeignKey('products.id'), primary_key=True)
     quantity: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
 
-    product = relationship('Product', lazy="joined", uselist=False)
+    product = relationship('Product', lazy="selectin", uselist=False)
 
     @hybrid_property
     def total_price(self):
@@ -120,7 +111,6 @@ class Order(Base):
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey('users.id'))
     address_id: Mapped[int] = mapped_column(Integer, ForeignKey('addresses.id'))
 
-    user = relationship('User', back_populates='orders', uselist=False)
     address = relationship('Address', uselist=False)
     items = relationship('OrderItem', lazy='selectin')
 
@@ -146,8 +136,11 @@ class Product(Base):
                                                  nullable=False)
     enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
-    categories = relationship('Category', back_populates='products', secondary=product_category_association)
-    reviews = relationship('Review', back_populates='product', lazy='selectin')
+    categories = relationship('Category',
+                              back_populates='products',
+                              lazy='selectin',
+                              secondary=product_category_association)
+    reviews = relationship('Review', lazy='selectin')
 
     @hybrid_property
     def rating(self):
@@ -172,6 +165,3 @@ class Review(Base):
     content: Mapped[str] = mapped_column(String, nullable=False)
     created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), default=lambda: datetime.now(UTC),
                                                  nullable=False)
-
-    product = relationship('Product', back_populates='reviews', uselist=False)
-    user = relationship('User', back_populates='reviews', uselist=False)

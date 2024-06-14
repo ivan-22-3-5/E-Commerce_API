@@ -10,7 +10,7 @@ class AddressBase(BaseModel):
     country: str
     city: str
     street: str
-    zipcode: int
+    zipcode: str
 
 
 class AddressIn(AddressBase):
@@ -26,4 +26,4 @@ class AddressUpdate(ObjUpdate):
     country: Optional[str] = Field(default=None)
     city: Optional[str] = Field(default=None)
     street: Optional[str] = Field(default=None)
-    zipcode: Optional[int] = Field(default=None)
+    zipcode: Optional[str] = Field(default=None)

@@ -1,6 +1,5 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload
 
 from src.crud import base, products
 from src.db import models
@@ -9,8 +8,7 @@ from src.schemas.item import ItemIn
 
 async def get_by_user(user_id: int, db: AsyncSession) -> models.Cart | None:
     return await base.get_one(select(models.Cart).
-                              filter(models.Cart.user_id == user_id).
-                              options(joinedload(models.Cart.items)), db)
+                              filter(models.Cart.user_id == user_id), db)
 
 
 async def add_item(user_id: int, item: ItemIn, db: AsyncSession) -> models.Cart | None:
