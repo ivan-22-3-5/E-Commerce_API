@@ -54,7 +54,7 @@ async def remove_item_from_cart(user: cur_user_dependency, item: ItemIn, db: db_
     return await carts.remove_item(user.id, item, db)
 
 
-@router.delete('/me/cart', response_model=CartOut, status_code=status.HTTP_200_OK)
+@router.post('/me/cart/clear', response_model=CartOut, status_code=status.HTTP_200_OK)
 async def clear_cart(user: cur_user_dependency, db: db_dependency):
     return await carts.clear(user.id, db)
 

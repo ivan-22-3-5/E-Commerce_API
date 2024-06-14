@@ -22,7 +22,7 @@ async def create_order(order: OrderIn, user: cur_user_dependency, db: db_depende
     return await orders.create(order, user.id, db=db)
 
 
-@router.patch('/{order_id}/cancel', status_code=status.HTTP_200_OK, response_model=Message)
+@router.post('/{order_id}/cancel', status_code=status.HTTP_200_OK, response_model=Message)
 async def cancel_order(order_id: int, user: cur_user_dependency, db: db_dependency):
     if (order := await orders.get_by_id(order_id, db)) is None:
         raise ResourceDoesNotExistError("Order with the given id does not exist")
