@@ -15,8 +15,9 @@ class ProductIn(ProductBase):
     pass
 
 
-class ProductOut(BaseModel):
+class ProductOut(ProductBase):
     id: int
+    rating: float
 
 
 class ProductUpdate(ObjUpdate):

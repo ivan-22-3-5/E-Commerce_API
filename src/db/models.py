@@ -22,7 +22,8 @@ class User(Base):
     email: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     password: Mapped[str] = mapped_column(String, nullable=False)
     username: Mapped[str] = mapped_column(String, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), default=lambda: datetime.now(UTC), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), default=lambda: datetime.now(UTC),
+                                                 nullable=False)
     is_admin: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     refresh_token = relationship('RefreshToken', back_populates='user', uselist=False, cascade='all, delete')
@@ -141,17 +142,23 @@ class Product(Base):
     title: Mapped[str] = mapped_column(String, nullable=False)
     description: Mapped[str] = mapped_column(String, nullable=False)
     price: Mapped[float] = mapped_column(Float, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), default=lambda: datetime.now(UTC), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), default=lambda: datetime.now(UTC),
+                                                 nullable=False)
     enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
     categories = relationship('Category', back_populates='products', secondary=product_category_association)
-    reviews = relationship('Review', back_populates='product')
+    reviews = relationship('Review', back_populates='product', lazy='selectin')
+
+    @hybrid_property
+    def rating(self):
+        return sum(review.rating for review in self.reviews) / len(self.reviews) if self.reviews else 0
 
 
 class Category(Base):
     __tablename__ = 'categories'
     name: Mapped[str] = mapped_column(String, primary_key=True)
-    created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), default=lambda: datetime.now(UTC), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), default=lambda: datetime.now(UTC),
+                                                 nullable=False)
 
     products = relationship('Product', back_populates='categories', secondary=product_category_association)
 
@@ -163,7 +170,8 @@ class Review(Base):
     product_id: Mapped[int] = mapped_column(Integer, ForeignKey('products.id'))
     rating: Mapped[int] = mapped_column(Integer, nullable=False)
     content: Mapped[str] = mapped_column(String, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), default=lambda: datetime.now(UTC), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), default=lambda: datetime.now(UTC),
+                                                 nullable=False)
 
     product = relationship('Product', back_populates='reviews', uselist=False)
     user = relationship('User', back_populates='reviews', uselist=False)
