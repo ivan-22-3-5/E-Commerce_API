@@ -71,20 +71,20 @@ class Cart(Base):
     def total_price(self):
         return sum(item.total_price for item in self.items)
 
-    def add_item(self, new_item: CartItem):
-        existing_item = next((item for item in self.items if item.product_id == new_item.product_id), None)
+    def add_item(self, product_id: int, quantity: int):
+        existing_item = next((item for item in self.items if item.product_id == product_id), None)
         if existing_item:
-            existing_item.quantity += new_item.quantity
+            existing_item.quantity += quantity
         else:
-            self.items.append(new_item)
+            self.items.append(CartItem(product_id, quantity))
 
-    def remove_item(self, item_to_remove: CartItem):
-        existing_item = next((item for item in self.items if item.product_id == item_to_remove.product_id), None)
+    def remove_item(self, product_id: int, quantity: int):
+        existing_item = next((item for item in self.items if item.product_id == product_id), None)
         if existing_item:
-            if existing_item.quantity <= item_to_remove.quantity:
+            if existing_item.quantity <= quantity:
                 self.items.remove(existing_item)
             else:
-                existing_item.quantity -= item_to_remove.quantity
+                existing_item.quantity -= quantity
 
     def clear(self):
         self.items = []
