@@ -8,7 +8,7 @@ from src.schemas.base import ObjUpdate
 class ProductBase(BaseModel):
     title: str
     description: str
-    price: float
+    full_price: float
 
 
 class ProductIn(ProductBase):
@@ -18,10 +18,12 @@ class ProductIn(ProductBase):
 class ProductOut(ProductBase):
     id: int
     rating: float
+    final_price: float
 
 
 class ProductUpdate(ObjUpdate):
     title: Optional[str] = Field(default=None)
     description: Optional[str] = Field(default=None)
-    price: Optional[float] = Field(default=None)
+    full_price: Optional[float] = Field(default=None)
+    discount: Optional[float] = Field(default=None)
     enabled: Optional[bool] = Field(default=None)

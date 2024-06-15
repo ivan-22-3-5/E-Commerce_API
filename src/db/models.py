@@ -57,7 +57,7 @@ class CartItem(Base):
 
     @hybrid_property
     def total_price(self):
-        return self.product.price * self.quantity
+        return self.product.final_price * self.quantity
 
 
 class Cart(Base):
@@ -100,7 +100,7 @@ class OrderItem(Base):
 
     @hybrid_property
     def total_price(self):
-        return self.product.price * self.quantity
+        return self.product.final_price * self.quantity
 
 
 class Order(Base):
@@ -131,7 +131,8 @@ class Product(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     title: Mapped[str] = mapped_column(String, nullable=False)
     description: Mapped[str] = mapped_column(String, nullable=False)
-    price: Mapped[float] = mapped_column(Float, nullable=False)
+    full_price: Mapped[float] = mapped_column(Float, nullable=False)
+    discount: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), default=lambda: datetime.now(UTC),
                                                  nullable=False)
     enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
@@ -144,7 +145,11 @@ class Product(Base):
 
     @hybrid_property
     def rating(self):
-        return sum(review.rating for review in self.reviews) / len(self.reviews) if self.reviews else 0
+        return round(sum(review.rating for review in self.reviews) / len(self.reviews), 1) if self.reviews else 0
+
+    @hybrid_property
+    def final_price(self):
+        return round(self.full_price * (1 - self.discount / 100), 2)
 
 
 class Category(Base):
