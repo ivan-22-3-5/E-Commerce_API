@@ -9,8 +9,7 @@ from src.schemas.category import CategoryIn
 
 async def get_by_name(category_name: str, db: AsyncSession) -> models.Category | None:
     return await base.get_one(select(models.Category).
-                              filter(models.Category.name == category_name).
-                              options(selectinload(models.Category.products)), db)
+                              filter(models.Category.name == category_name), db)
 
 
 async def create(category: CategoryIn, db: AsyncSession) -> models.Category | None:

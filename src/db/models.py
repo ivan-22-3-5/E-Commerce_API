@@ -158,7 +158,7 @@ class Category(Base):
     created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), default=lambda: datetime.now(UTC),
                                                  nullable=False)
 
-    products = relationship('Product', back_populates='categories', secondary=product_category_association)
+    products = relationship('Product', back_populates='categories', lazy="selectin", secondary=product_category_association)
 
 
 class Review(Base):

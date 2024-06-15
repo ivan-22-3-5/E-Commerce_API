@@ -6,6 +6,7 @@ from src.schemas.category import CategoryIn
 from src.schemas.message import Message
 from src.deps import cur_user_dependency, db_dependency
 from src.custom_exceptions import ResourceAlreadyExistsError, ResourceDoesNotExistError
+from src.schemas.product import ProductOut
 
 router = APIRouter(
     prefix='/categories',
@@ -42,3 +43,10 @@ async def link_category_to_product(user: cur_user_dependency, category_name: str
         raise ResourceAlreadyExistsError(f"Product is already associated with the {category_name} category")
     await categories.add_product(category_name, product, db)
     return Message(message=f"Category {category_name} has been successfully linked to product with id {product_id}")
+
+
+@router.get('/{category_name}/products', status_code=status.HTTP_200_OK, response_model=list[ProductOut])
+async def get_category_products(category_name: str, db: db_dependency):
+    if (category := await categories.get_by_name(category_name, db)) is None:
+        raise ResourceDoesNotExistError("Category with the given name does not exist")
+    return category.products
