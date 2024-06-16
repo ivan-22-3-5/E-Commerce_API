@@ -118,7 +118,7 @@ class Order(Base):
     def total_price(self):
         return sum(item.total_price for item in self.items)
 
-    def __init__(self, user_id: int, address_id: int, items: list[dict[int, int]]):
+    def __init__(self, user_id: int, address_id: int, items: list[dict[str, int]]):
         self.created_at = datetime.now()
         self.status = OrderStatus.PENDING
         self.user_id = user_id

@@ -22,7 +22,10 @@ router = APIRouter(
 async def create_user(user: UserIn, db: db_dependency):
     if await users.get_by_email(user.email, db=db):
         raise ResourceAlreadyExistsError("Email is already registered")
-    return await users.create(user, db=db)
+    new_user = await users.create(user, db=db)
+    await carts.create(new_user.id, db=db)
+    await db.refresh(new_user)
+    return new_user
 
 
 @router.get('/me', response_model=UserOut, status_code=status.HTTP_200_OK)

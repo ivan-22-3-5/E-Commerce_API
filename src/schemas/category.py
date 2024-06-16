@@ -6,5 +6,5 @@ class CategoryIn(BaseModel):
 
     @field_validator('name')
     @classmethod
-    def to_lower_case(cls, v):
+    def to_lower_case(cls, v) -> str:
         return v.lower()

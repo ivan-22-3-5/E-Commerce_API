@@ -11,6 +11,10 @@ async def get_by_user(user_id: int, db: AsyncSession) -> models.Cart | None:
                               filter(models.Cart.user_id == user_id), db)
 
 
+async def create(user_id: int, db: AsyncSession) -> models.Cart | None:
+    return await base.create(models.Cart(user_id=user_id), db)
+
+
 async def add_item(user_id: int, item: ItemIn, db: AsyncSession) -> models.Cart | None:
     cart = await get_by_user(user_id, db)
     if cart and await products.get_by_id(item.product_id, db):
