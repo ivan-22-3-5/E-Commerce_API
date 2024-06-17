@@ -1,8 +1,8 @@
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, field_validator, Field
 
 
 class CategoryIn(BaseModel):
-    name: str
+    name: str = Field(max_length=32)
 
     @field_validator('name')
     @classmethod

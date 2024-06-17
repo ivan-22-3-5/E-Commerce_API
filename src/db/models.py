@@ -106,8 +106,8 @@ class OrderItem(Base):
 class Order(Base):
     __tablename__ = 'orders'
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), nullable=False)
-    status: Mapped[OrderStatus] = mapped_column(Enum(OrderStatus), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), default=lambda: datetime.now(UTC), nullable=False)
+    status: Mapped[OrderStatus] = mapped_column(Enum(OrderStatus), default=OrderStatus.PENDING, nullable=False)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey('users.id'))
     address_id: Mapped[int] = mapped_column(Integer, ForeignKey('addresses.id'))
 
@@ -119,8 +119,6 @@ class Order(Base):
         return sum(item.total_price for item in self.items)
 
     def __init__(self, user_id: int, address_id: int, items: list[dict[str, int]]):
-        self.created_at = datetime.now()
-        self.status = OrderStatus.PENDING
         self.user_id = user_id
         self.address_id = address_id
         self.items = [OrderItem(**item) for item in items]

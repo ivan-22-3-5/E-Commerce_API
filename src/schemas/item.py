@@ -2,7 +2,7 @@ from pydantic import BaseModel, Field
 
 
 class ItemBase(BaseModel):
-    product_id: int
+    product_id: int = Field(gt=0)
     quantity: int = Field(gt=0)
 
 
