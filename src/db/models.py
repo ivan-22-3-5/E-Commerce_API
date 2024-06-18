@@ -47,6 +47,12 @@ class RefreshToken(Base):
     token: Mapped[str] = mapped_column(String, nullable=False)
 
 
+class RecoveryToken(Base):
+    __tablename__ = 'recovery_tokens'
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey('users.id'), primary_key=True)
+    token: Mapped[str] = mapped_column(String, nullable=False)
+
+
 class CartItem(Base):
     __tablename__ = 'cart_items'
     cart_id: Mapped[int] = mapped_column(Integer, ForeignKey('carts.id'), primary_key=True)

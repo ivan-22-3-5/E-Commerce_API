@@ -17,3 +17,7 @@ async def get_by_id(user_id: int, db: AsyncSession) -> models.User | None:
 
 async def create(user: UserIn, db: AsyncSession) -> models.User:
     return await base.create(models.User(**user.model_dump()), db)
+
+
+async def update_password(user_id: int, new_password: str, db: AsyncSession):
+    await base.update_property(select(models.User).filter(models.User.id == user_id), 'password', new_password, db)
