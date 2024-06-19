@@ -42,4 +42,4 @@ async def change_order_status(user: cur_user_dependency, order_id: int, new_stat
     if not await orders.get_by_id(order_id, db):
         raise ResourceDoesNotExistError("Order with the given id does not exist")
     await orders.update_status(order_id, new_status, db=db)
-    return Message(message=f"The order status updated to {new_status}")
+    return Message(message=f"The order status updated to {new_status.value}")

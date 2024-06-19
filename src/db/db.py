@@ -5,7 +5,7 @@ from src.config import settings
 
 engine = create_async_engine(settings.POSTGRESQL_DB_URL)
 
-SessionLocal = async_sessionmaker(bind=engine, autoflush=False, autocommit=False)
+SessionLocal = async_sessionmaker(bind=engine, autoflush=False, autocommit=False, expire_on_commit=False)
 Base = declarative_base()
 
 
