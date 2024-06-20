@@ -26,9 +26,9 @@ async def login(user_credentials: Annotated[OAuth2PasswordRequestForm, Depends()
     user = await users.get_by_email(user_credentials.username, db)
     if not (user and verify_password(user_credentials.password, user.password)):
         raise InvalidCredentialsError("No account with the given email exists or the password is wrong")
-    access_token = create_jwt_token(data={"sub": str(user.id)},
+    access_token = create_jwt_token(user_id=user.id,
                                     expires_in=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES))
-    refresh_token = create_jwt_token(data={"sub": str(user.id)},
+    refresh_token = create_jwt_token(user_id=user.id,
                                      expires_in=timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS))
     if await refresh_tokens.get_by_user_id(user.id, db=db):
         await refresh_tokens.update(user_id=user.id, new_token=refresh_token, db=db)
@@ -52,9 +52,9 @@ async def refresh(req: Request, res: Response, db: db_dependency):
     db_token = await refresh_tokens.get_by_user_id(user_id, db)
     if not (db_token and db_token.token == token):
         raise InvalidTokenError("Invalid refresh token")
-    access_token = create_jwt_token(data={"sub": str(user_id)},
+    access_token = create_jwt_token(user_id=user_id,
                                     expires_in=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES))
-    refresh_token = create_jwt_token(data={"sub": str(user_id)},
+    refresh_token = create_jwt_token(user_id=user_id,
                                      expires_in=timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS))
     await refresh_tokens.update(user_id=user_id, new_token=refresh_token, db=db)
     res.set_cookie(key="refresh_token",
@@ -70,7 +70,7 @@ async def refresh(req: Request, res: Response, db: db_dependency):
 async def recover_password(email: EmailStr, db: db_dependency):
     if (user := await users.get_by_email(email, db)) is None:
         raise ResourceDoesNotExistError("The given email is not registered yet")
-    recovery_token = create_jwt_token(data={"sub": str(user.id)},
+    recovery_token = create_jwt_token(user_id=user.id,
                                       expires_in=timedelta(minutes=settings.RECOVERY_TOKEN_EXPIRE_MINUTES))
     if await recovery_tokens.get_by_user_id(user.id, db=db):
         await recovery_tokens.update(user_id=user.id, new_token=recovery_token, db=db)
