@@ -9,7 +9,8 @@ from src.custom_exceptions import InvalidCredentialsError, InvalidTokenError, Re
 from src.schemas.new_password import NewPasswordIn
 from src.schemas.token import Token
 from src.schemas.message import Message
-from src.crud import users, refresh_tokens, recovery_tokens
+from src.crud import users
+from src.crud.tokens import refresh_tokens, recovery_tokens
 from src.config import settings
 from src.deps import token_dependency, db_dependency
 from src.utils import create_jwt_token, get_user_id_from_jwt, verify_password, send_password_recovery_email
