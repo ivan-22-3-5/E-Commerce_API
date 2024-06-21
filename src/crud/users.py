@@ -21,3 +21,7 @@ async def create(user: UserIn, db: AsyncSession) -> models.User:
 
 async def update_password(user_id: int, new_password: str, db: AsyncSession):
     await base.update_property(select(models.User).filter(models.User.id == user_id), 'password', new_password, db)
+
+
+async def confirm_email(user_id: int, db: AsyncSession):
+    await base.update_property(select(models.User).filter(models.User.id == user_id), 'is_confirmed', True, db)

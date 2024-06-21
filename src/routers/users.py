@@ -1,16 +1,21 @@
-from typing import Optional
+from datetime import timedelta
+from typing import Optional, Annotated
 
-from fastapi import APIRouter, status
+from fastapi import APIRouter, status, Body
 
+from src.config import settings
 from src.crud import users, orders, reviews, carts, addresses
+from src.crud.tokens import confirmation_tokens
 from src.schemas.address import AddressOut
 from src.schemas.cart import CartOut
 from src.schemas.item import ItemIn
+from src.schemas.message import Message
 from src.schemas.order import OrderOut
 from src.schemas.review import ReviewOut
 from src.schemas.user import UserIn, UserOut
 from src.deps import cur_user_dependency, db_dependency
-from src.custom_exceptions import ResourceAlreadyExistsError
+from src.custom_exceptions import ResourceAlreadyExistsError, InvalidTokenError
+from src.utils import send_email_confirmation_email, create_jwt_token, get_user_id_from_jwt
 
 router = APIRouter(
     prefix='/users',
@@ -18,14 +23,33 @@ router = APIRouter(
 )
 
 
-@router.post('', status_code=status.HTTP_201_CREATED, response_model=UserOut)
+@router.post('', status_code=status.HTTP_201_CREATED, response_model=Message)
 async def create_user(user: UserIn, db: db_dependency):
     if await users.get_by_email(user.email, db=db):
         raise ResourceAlreadyExistsError("Email is already registered")
     new_user = await users.create(user, db=db)
     await carts.create(new_user.id, db=db)
-    await db.refresh(new_user)
-    return new_user
+    confirmation_token = create_jwt_token(user_id=new_user.id,
+                                          expires_in=timedelta(minutes=settings.CONFIRMATION_TOKEN_EXPIRE_MINUTES))
+    if await confirmation_tokens.get_by_user_id(new_user.id, db):
+        await confirmation_tokens.update(user_id=new_user.id, new_token=confirmation_token, db=db)
+    else:
+        await confirmation_tokens.add(user_id=new_user.id, token=confirmation_token, db=db)
+    await send_email_confirmation_email(username=new_user.username,
+                                        link=settings.EMAIL_CONFIRMATION_LINK + confirmation_token,
+                                        email_address=new_user.email)
+    return Message(message="Confirmation email sent")
+
+
+@router.post('/confirm', status_code=status.HTTP_200_OK, response_model=Message)
+async def confirm_email(token: Annotated[str, Body(embed=True)], db: db_dependency):
+    user_id = get_user_id_from_jwt(token)
+    db_token = await confirmation_tokens.get_by_user_id(user_id, db)
+    if not (db_token and db_token.token == token):
+        raise InvalidTokenError("Invalid confirmation token")
+    await users.confirm_email(user_id, db)
+    await confirmation_tokens.delete(user_id, db)
+    return Message(message="The user is confirmed")
 
 
 @router.get('/me', response_model=UserOut, status_code=status.HTTP_200_OK)
