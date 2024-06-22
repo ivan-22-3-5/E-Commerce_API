@@ -11,3 +11,14 @@ def admin_path(f):
         return await f(user, *args, **kwargs)
 
     return wrapper
+
+
+def confirmed_email_required(f):
+    @wraps(f)
+    async def wrapper(user, *args, **kwargs):
+        if not user.is_confirmed:
+            raise NotEnoughRightsError("Only user with a confirmed email can access this endpoint")
+        return await f(user, *args, **kwargs)
+
+    return wrapper
+
