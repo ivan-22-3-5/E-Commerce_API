@@ -121,9 +121,11 @@ class Order(Base):
     status: Mapped[OrderStatus] = mapped_column(Enum(OrderStatus), default=OrderStatus.PENDING, nullable=False)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey('users.id'))
     address_id: Mapped[int] = mapped_column(Integer, ForeignKey('addresses.id'))
+    is_paid: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     address: Mapped["Address"] = relationship('Address', uselist=False)
     items: Mapped[list["OrderItem"]] = relationship('OrderItem', lazy='selectin')
+
 
     @hybrid_property
     def total_price(self):

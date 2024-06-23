@@ -25,3 +25,9 @@ async def create(order: OrderIn, user_id: int, db: AsyncSession) -> models.Order
 async def update_status(order_id: int, new_status: OrderStatus, db: AsyncSession):
     await base.update_property(select(models.Order).filter(models.Order.id == order_id),
                                'status', new_status, db)
+
+
+async def pay_order(order_id: int, db: AsyncSession):
+    await base.update_property(select(models.Order).filter(models.Order.id == order_id),
+                               'is_paid', True, db)
+
