@@ -41,6 +41,7 @@ def get_user_id_from_jwt(token: str) -> int:
     return int(user_id)
 
 
+#TODO refactor this and partials 
 async def send_email(*, username: str, link: str, email_address: EmailStr, subject: str, template: str):
     message = MessageSchema(
         subject=subject,
