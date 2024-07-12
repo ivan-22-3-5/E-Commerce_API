@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from typing import Callable
 
 from fastapi import FastAPI, Request, status
@@ -22,12 +23,14 @@ async def init_db():
     async with engine.begin() as conn:
         await conn.run_sync(models.Base.metadata.create_all)
 
-app = FastAPI()
 
-
-@app.on_event("startup")
-async def on_startup():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     await init_db()
+    yield
+
+
+app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
