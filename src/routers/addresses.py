@@ -1,5 +1,6 @@
 from fastapi import APIRouter, status
 
+from src.constraints import confirmed_email_required
 from src.crud import addresses
 from src.schemas.address import AddressOut, AddressIn, AddressUpdate
 from src.schemas.message import Message
@@ -13,7 +14,8 @@ router = APIRouter(
 
 
 @router.post('', status_code=status.HTTP_201_CREATED, response_model=AddressOut)
-async def create_address(address: AddressIn, user: cur_user_dependency, db: db_dependency):
+@confirmed_email_required
+async def create_address(user: cur_user_dependency, address: AddressIn, db: db_dependency):
     return await addresses.create(address, user.id, db)
 
 

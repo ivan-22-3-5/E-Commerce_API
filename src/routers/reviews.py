@@ -1,5 +1,6 @@
 from fastapi import APIRouter, status
 
+from src.constraints import confirmed_email_required
 from src.crud import reviews, products
 from src.custom_exceptions import ResourceDoesNotExistError, NotEnoughRightsError
 from src.deps import cur_user_dependency, db_dependency
@@ -12,8 +13,9 @@ router = APIRouter(
 )
 
 
+@confirmed_email_required
 @router.post('', status_code=status.HTTP_201_CREATED, response_model=Message)
-async def create_review(product_id: int, review: ReviewIn, user: cur_user_dependency, db: db_dependency):
+async def create_review(user: cur_user_dependency, product_id: int, review: ReviewIn, db: db_dependency):
     if not await products.get_by_id(product_id, db):
         raise ResourceDoesNotExistError("Product with the given id does not exist")
     await reviews.create(product_id, user.id, review, db)

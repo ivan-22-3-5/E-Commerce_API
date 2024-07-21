@@ -10,7 +10,7 @@ async def get_by_id(product_id: int, db: AsyncSession) -> models.Product | None:
     return await base.get_one(select(models.Product).filter(models.Product.id == product_id), db)
 
 
-async def get(*, enabled: bool | None = None, db: AsyncSession) -> list[models.Product] | None:
+async def get_all(*, enabled: bool | None = None, db: AsyncSession) -> list[models.Product] | None:
     query = select(models.Product)
     if enabled is not None:
         query = query.filter(models.Product.enabled == enabled)

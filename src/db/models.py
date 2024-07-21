@@ -126,12 +126,12 @@ class Order(Base):
     address: Mapped["Address"] = relationship('Address', uselist=False)
     items: Mapped[list["OrderItem"]] = relationship('OrderItem', lazy='selectin')
 
-
     @hybrid_property
     def total_price(self):
         return sum(item.total_price for item in self.items)
 
     def __init__(self, user_id: int, address_id: int, items: list[dict[str, int]]):
+        super().__init__()
         self.user_id = user_id
         self.address_id = address_id
         self.items = [OrderItem(**item) for item in items]
@@ -182,4 +182,3 @@ class Review(Base):
     content: Mapped[str] = mapped_column(String, nullable=False)
     created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), default=lambda: datetime.now(UTC),
                                                  nullable=False)
-#TODO: add payment model 

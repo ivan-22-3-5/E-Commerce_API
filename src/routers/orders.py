@@ -1,6 +1,6 @@
 from fastapi import APIRouter, status
 
-from src.constraints import admin_path
+from src.constraints import admin_path, confirmed_email_required
 from src.crud import orders, products, addresses
 from src.custom_types import OrderStatus
 from src.schemas.message import Message
@@ -14,8 +14,9 @@ router = APIRouter(
 )
 
 
+@confirmed_email_required
 @router.post('', status_code=status.HTTP_201_CREATED, response_model=OrderOut)
-async def create_order(order: OrderIn, user: cur_user_dependency, db: db_dependency):
+async def create_order(user: cur_user_dependency, order: OrderIn, db: db_dependency):
     if (address := await addresses.get_by_id(order.address_id, db)) is None:
         raise ResourceDoesNotExistError("Address with the given id does not exist")
     if address.user_id != user.id:
