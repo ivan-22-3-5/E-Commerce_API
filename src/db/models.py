@@ -182,3 +182,16 @@ class Review(Base):
     content: Mapped[str] = mapped_column(String, nullable=False)
     created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), default=lambda: datetime.now(UTC),
                                                  nullable=False)
+
+
+class Payment(Base):
+    __tablename__ = 'payments'
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    amount = Column(Float, nullable=False)
+    currency = Column(String(3), nullable=False)  # ISO 4217 currency codes
+    payment_method = Column(String, nullable=False)
+    status = Column(String, nullable=False)
+    transaction_id = Column(String, unique=True, nullable=False)
+    created_at = Column(TIMESTAMP(timezone=True), default=lambda: datetime.now(UTC))
