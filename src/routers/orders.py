@@ -59,3 +59,30 @@ async def change_order_status(user: cur_user_dependency, order_id: int, new_stat
         raise ResourceDoesNotExistError("Order with the given id does not exist")
     await orders.update_status(order_id, new_status, db=db)
     return Message(message=f"The order status updated to {new_status.value}")
+
+
+@router.post('/webhook', status_code=status.HTTP_200_OK)
+async def webhook(req: Request):
+    payload = await req.body()
+    sig_header = req.headers['STRIPE_SIGNATURE']
+
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, settings.STRIPE_WEBHOOK_SECRET
+        )
+    # TODO: more robust handling
+    except ValueError as e:
+        raise e
+    except stripe.error.SignatureVerificationError as e:
+        raise e
+
+    event_dict = event.to_dict()
+    if event_dict['type'] == "payment_intent.succeeded":
+        intent = event_dict['data']['object']
+        # TODO: succeeded logic
+        print("Succeeded: ", intent['id'])
+    elif event_dict['type'] == "payment_intent.payment_failed":
+        intent = event_dict['data']['object']
+        error_message = intent['last_payment_error']['message'] if intent.get('last_payment_error') else None
+        # TODO: failed logic
+        print("Failed: ", intent['id'], error_message)
