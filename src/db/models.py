@@ -94,7 +94,7 @@ class Cart(Base):
         if existing_item:
             existing_item.quantity += quantity
         else:
-            self.items.append(CartItem(product_id, quantity))
+            self.items.append(CartItem(product_id=product_id, quantity=quantity))
 
     def remove_item(self, product_id: int, quantity: int):
         existing_item = next((item for item in self.items if item.product_id == product_id), None)
