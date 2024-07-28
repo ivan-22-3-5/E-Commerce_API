@@ -9,7 +9,12 @@ from src.schemas.client_secret import ClientSecret
 from src.schemas.message import Message
 from src.schemas.order import OrderIn
 from src.deps import cur_user_dependency, db_dependency
-from src.custom_exceptions import ResourceDoesNotExistError, NotEnoughRightsError
+from src.custom_exceptions import (
+    ResourceDoesNotExistError,
+    NotEnoughRightsError,
+    InvalidPayloadError,
+    InvalidSignatureError
+)
 
 router = APIRouter(
     prefix='/orders',
@@ -64,17 +69,16 @@ async def change_order_status(user: cur_user_dependency, order_id: int, new_stat
 @router.post('/webhook', status_code=status.HTTP_200_OK)
 async def webhook(req: Request):
     payload = await req.body()
-    sig_header = req.headers['STRIPE_SIGNATURE']
+    sig_header = req.headers.get('stripe-signature')
 
     try:
         event = stripe.Webhook.construct_event(
             payload, sig_header, settings.STRIPE_WEBHOOK_SECRET
         )
-    # TODO: more robust handling
     except ValueError as e:
-        raise e
+        raise InvalidPayloadError("Invalid payload" + str(e))
     except stripe.error.SignatureVerificationError as e:
-        raise e
+        raise InvalidSignatureError("Invalid signature" + str(e))
 
     event_dict = event.to_dict()
     if event_dict['type'] == "payment_intent.succeeded":

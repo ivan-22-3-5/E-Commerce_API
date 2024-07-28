@@ -15,7 +15,7 @@ from src.custom_exceptions import (
     ResourceAlreadyExistsError,
     NotEnoughRightsError,
     InvalidTokenError,
-    InvalidCredentialsError,
+    InvalidCredentialsError, InvalidPayloadError, InvalidSignatureError,
 )
 
 
@@ -81,4 +81,14 @@ app.add_exception_handler(
 app.add_exception_handler(
     exc_class_or_status_code=InvalidCredentialsError,
     handler=create_exception_handler(status.HTTP_401_UNAUTHORIZED, "Invalid credentials")
+)
+
+app.add_exception_handler(
+    exc_class_or_status_code=InvalidPayloadError,
+    handler=create_exception_handler(status.HTTP_422_UNPROCESSABLE_ENTITY, "Invalid payload")
+)
+
+app.add_exception_handler(
+    exc_class_or_status_code=InvalidSignatureError,
+    handler=create_exception_handler(status.HTTP_401_UNAUTHORIZED, "Invalid signature")
 )

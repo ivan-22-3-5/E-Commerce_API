@@ -23,3 +23,11 @@ class InvalidTokenError(ECommerceApiError):
 
 class InvalidCredentialsError(ECommerceApiError):
     pass
+
+
+class InvalidPayloadError(ECommerceApiError):
+    pass
+
+
+class InvalidSignatureError(ECommerceApiError):
+    pass
