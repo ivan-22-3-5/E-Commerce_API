@@ -15,6 +15,7 @@ from src.custom_exceptions import (
     InvalidPayloadError,
     InvalidSignatureError
 )
+from src.utils import create_payment_intent
 
 router = APIRouter(
     prefix='/orders',
@@ -33,17 +34,7 @@ async def create_order(user: cur_user_dependency, order: OrderIn, db: db_depende
         if not await products.get_by_id(item.product_id, db):
             raise ResourceDoesNotExistError("Product with the given id does not exist")
     order = await orders.create(order, user.id, db=db)
-    payment_intent = stripe.PaymentIntent.create(
-        amount=int(order.total_price * 100),
-        currency="usd",
-        automatic_payment_methods={
-            "enabled": True
-        },
-        metadata={
-            "order_id": str(order.id)
-        },
-        api_key=settings.STRIPE_SECRET_KEY
-    )
+    payment_intent = create_payment_intent(order)
     return ClientSecret(client_secret=payment_intent.client_secret)
 
 

@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta, UTC
 from functools import partial
 
+import stripe
 from fastapi_mail import MessageSchema, MessageType, FastMail
 from passlib.context import CryptContext
 from jose import JWTError, ExpiredSignatureError, jwt
@@ -8,6 +9,7 @@ from pydantic import EmailStr
 
 from src.config import settings, smtp_config
 from src.custom_exceptions import InvalidTokenError
+from src.db import models
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -41,7 +43,24 @@ def get_user_id_from_jwt(token: str) -> int:
     return int(user_id)
 
 
-#TODO refactor this and partials 
+def create_payment_intent(order: models.Order):
+    amount = int(order.total_price * 100)
+    automatic_payment_methods = {
+        "enabled": True,
+        "allow_redirects": 'never'
+    }
+    metadata = {
+        "order_id": str(order.id)
+    }
+    return stripe.PaymentIntent.create(
+        amount=amount,
+        currency="usd",
+        automatic_payment_methods=automatic_payment_methods,
+        metadata=metadata,
+        api_key=settings.STRIPE_SECRET_KEY
+    )
+
+
 async def send_email(*, username: str, link: str, email_address: EmailStr, subject: str, template: str):
     message = MessageSchema(
         subject=subject,
