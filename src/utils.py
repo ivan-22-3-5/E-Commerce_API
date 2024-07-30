@@ -50,7 +50,8 @@ def create_payment_intent(order: models.Order):
         "allow_redirects": 'never'
     }
     metadata = {
-        "order_id": str(order.id)
+        "order_id": str(order.id),
+        "user_id": str(order.user_id)
     }
     return stripe.PaymentIntent.create(
         amount=amount,

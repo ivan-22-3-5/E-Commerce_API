@@ -3,7 +3,7 @@ from fastapi import APIRouter, status, Request
 
 from src.config import settings
 from src.constraints import admin_path, confirmed_email_required
-from src.crud import orders, products, addresses
+from src.crud import orders, products, addresses, payments
 from src.custom_types import OrderStatus
 from src.schemas.client_secret import ClientSecret
 from src.schemas.message import Message
@@ -15,6 +15,7 @@ from src.custom_exceptions import (
     InvalidPayloadError,
     InvalidSignatureError
 )
+from src.schemas.payment import PaymentIn
 from src.utils import create_payment_intent
 
 router = APIRouter(
@@ -58,10 +59,9 @@ async def change_order_status(user: cur_user_dependency, order_id: int, new_stat
 
 
 @router.post('/webhook', status_code=status.HTTP_200_OK)
-async def webhook(req: Request):
+async def webhook(req: Request, db: db_dependency):
     payload = await req.body()
     sig_header = req.headers.get('stripe-signature')
-
     try:
         event = stripe.Webhook.construct_event(
             payload, sig_header, settings.STRIPE_WEBHOOK_SECRET
@@ -71,13 +71,23 @@ async def webhook(req: Request):
     except stripe.error.SignatureVerificationError as e:
         raise InvalidSignatureError("Invalid signature" + str(e))
 
-    event_dict = event.to_dict()
-    if event_dict['type'] == "payment_intent.succeeded":
-        intent = event_dict['data']['object']
-        # TODO: succeeded logic
-        print("Succeeded: ", intent['id'])
-    elif event_dict['type'] == "payment_intent.payment_failed":
-        intent = event_dict['data']['object']
-        error_message = intent['last_payment_error']['message'] if intent.get('last_payment_error') else None
-        # TODO: failed logic
-        print("Failed: ", intent['id'], error_message)
+    match event.type:
+        case "payment_intent.succeeded":
+            intent = event.data.object
+            metadata = intent['metadata']
+            if order_id := metadata.get('order_id'):
+                await orders.pay_order(int(order_id), db=db)
+                await payments.create(
+                    PaymentIn(
+                        user_id=int(metadata.get('user_id')),
+                        order_id=int(order_id),
+                        amount=float(intent['amount'])/100,
+                        currency=intent['currency'],
+                        payment_method=intent['payment_method'],
+                        intent_id=intent['id']
+                    ), db
+                )
+        case "payment_intent.payment_failed":
+            intent = event.data.object
+            error_message = intent['last_payment_error']['message'] if intent.get('last_payment_error') else None
+            print("Failed: ", intent['id'], error_message)
