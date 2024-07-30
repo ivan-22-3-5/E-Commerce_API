@@ -189,9 +189,9 @@ class Payment(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    order_id = Column(Integer, ForeignKey('orders.id'), nullable=False)
     amount = Column(Float, nullable=False)
-    currency = Column(String(3), nullable=False)  # ISO 4217 currency codes
+    currency = Column(String(3), nullable=False)
     payment_method = Column(String, nullable=False)
-    status = Column(String, nullable=False)
-    transaction_id = Column(String, unique=True, nullable=False)
+    intent_id = Column(String, unique=True, nullable=False)
     created_at = Column(TIMESTAMP(timezone=True), default=lambda: datetime.now(UTC))
