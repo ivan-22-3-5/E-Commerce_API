@@ -1,3 +1,8 @@
-/venv
-/alembic/
-/alembic.ini
+venv
+alembic
+alembic.ini
+Dockerfile
+docker-compose.yaml
+.idea
+.env
+.gitignore
