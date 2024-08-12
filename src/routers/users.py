@@ -3,6 +3,7 @@ from typing import Optional, Annotated
 
 from fastapi import APIRouter, status, Body
 
+from src.celery_tasks import send_email_confirmation_email
 from src.config import settings
 from src.crud import users, orders, reviews, carts, addresses
 from src.crud.tokens import confirmation_tokens
@@ -15,7 +16,7 @@ from src.schemas.review import ReviewOut
 from src.schemas.user import UserIn, UserOut
 from src.deps import cur_user_dependency, db_dependency
 from src.custom_exceptions import ResourceAlreadyExistsError, InvalidTokenError
-from src.utils import send_email_confirmation_email, create_jwt_token, get_user_id_from_jwt
+from src.utils import create_jwt_token, get_user_id_from_jwt
 
 router = APIRouter(
     prefix='/users',
@@ -35,7 +36,7 @@ async def create_user(user: UserIn, db: db_dependency):
         await confirmation_tokens.update(user_id=new_user.id, new_token=confirmation_token, db=db)
     else:
         await confirmation_tokens.add(user_id=new_user.id, token=confirmation_token, db=db)
-    await send_email_confirmation_email(username=new_user.username,
+    send_email_confirmation_email.delay(username=new_user.username,
                                         link=settings.EMAIL_CONFIRMATION_LINK + confirmation_token,
                                         email_address=new_user.email)
     return Message(message="Confirmation email sent")

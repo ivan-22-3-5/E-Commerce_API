@@ -1,7 +1,5 @@
-from pathlib import Path
 from typing import Literal
 
-from fastapi_mail import ConnectionConfig
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -35,18 +33,8 @@ class Settings(BaseSettings):
     SMTP_MAIL: str
     SMTP_SERVER: str
 
+    CELERY_BROKER_URL: str
+    CELERY_BACKEND_URL: str
+
 
 settings = Settings()
-
-smtp_config = ConnectionConfig(
-    MAIL_USERNAME=settings.SMTP_USERNAME,
-    MAIL_PASSWORD=settings.SMTP_PASSWORD,
-    MAIL_FROM=settings.SMTP_MAIL,
-    MAIL_PORT=settings.SMTP_PORT,
-    MAIL_SERVER=settings.SMTP_SERVER,
-    TEMPLATE_FOLDER=Path(__file__).parent / "html_templates",
-    MAIL_STARTTLS=False,
-    MAIL_SSL_TLS=True,
-    USE_CREDENTIALS=True,
-    VALIDATE_CERTS=True
-)

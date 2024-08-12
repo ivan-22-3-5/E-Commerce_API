@@ -1,13 +1,10 @@
 from datetime import datetime, timedelta, UTC
-from functools import partial
 
 import stripe
-from fastapi_mail import MessageSchema, MessageType, FastMail
 from passlib.context import CryptContext
 from jose import JWTError, ExpiredSignatureError, jwt
-from pydantic import EmailStr
 
-from src.config import settings, smtp_config
+from src.config import settings
 from src.custom_exceptions import InvalidTokenError
 from src.db import models
 
@@ -60,18 +57,3 @@ def create_payment_intent(order: models.Order):
         metadata=metadata,
         api_key=settings.STRIPE_SECRET_KEY
     )
-
-
-async def send_email(*, username: str, link: str, email_address: EmailStr, subject: str, template: str):
-    message = MessageSchema(
-        subject=subject,
-        recipients=[email_address],
-        template_body={'username': username, 'link': link},
-        subtype=MessageType.html,
-    )
-    fm = FastMail(smtp_config)
-    await fm.send_message(message, template_name=template)
-
-
-send_password_recovery_email = partial(send_email, subject="Password recovery", template="password_recovery.html")
-send_email_confirmation_email = partial(send_email, subject="Email confirmation", template="email_confirmation.html")

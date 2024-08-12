@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, Request, Response, status
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import EmailStr
 
+from src.celery_tasks import send_password_recovery_email
 from src.custom_exceptions import InvalidCredentialsError, InvalidTokenError, ResourceDoesNotExistError
 from src.schemas.new_password import NewPasswordIn
 from src.schemas.token import Token
@@ -13,7 +14,7 @@ from src.crud import users
 from src.crud.tokens import refresh_tokens, recovery_tokens
 from src.config import settings
 from src.deps import token_dependency, db_dependency
-from src.utils import create_jwt_token, get_user_id_from_jwt, verify_password, send_password_recovery_email
+from src.utils import create_jwt_token, get_user_id_from_jwt, verify_password
 
 router = APIRouter(
     prefix='/auth',
@@ -77,7 +78,7 @@ async def recover_password(email: EmailStr, db: db_dependency):
         await recovery_tokens.update(user_id=user.id, new_token=recovery_token, db=db)
     else:
         await recovery_tokens.add(user_id=user.id, token=recovery_token, db=db)
-    await send_password_recovery_email(username=user.username,
+    send_password_recovery_email.delay(username=user.username,
                                        link=settings.PASSWORD_RECOVERY_LINK + recovery_token,
                                        email_address=email)
     return Message(message="Recovery email sent")
