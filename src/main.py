@@ -15,7 +15,9 @@ from src.custom_exceptions import (
     ResourceAlreadyExistsError,
     NotEnoughRightsError,
     InvalidTokenError,
-    InvalidCredentialsError, InvalidPayloadError, InvalidSignatureError,
+    InvalidCredentialsError,
+    InvalidPayloadError,
+    InvalidSignatureError,
 )
 
 
@@ -57,38 +59,18 @@ def create_exception_handler(status_code, initial_detail) -> Callable[[Request, 
         return JSONResponse(status_code=status_code, content=content, headers=exc.headers)
     return exception_handler
 
+exception_handlers = [
+    (ResourceDoesNotExistError, status.HTTP_404_NOT_FOUND, "Resource not found"),
+    (ResourceAlreadyExistsError, status.HTTP_409_CONFLICT, "Resource already exists"),
+    (NotEnoughRightsError, status.HTTP_403_FORBIDDEN, "Not enough rights to execute the operation"),
+    (InvalidTokenError, status.HTTP_401_UNAUTHORIZED, "Invalid token"),
+    (InvalidCredentialsError, status.HTTP_401_UNAUTHORIZED, "Invalid credentials"),
+    (InvalidPayloadError, status.HTTP_422_UNPROCESSABLE_ENTITY, "Invalid payload"),
+    (InvalidSignatureError, status.HTTP_401_UNAUTHORIZED, "Invalid signature")
+]
 
-app.add_exception_handler(
-    exc_class_or_status_code=ResourceDoesNotExistError,
-    handler=create_exception_handler(status.HTTP_404_NOT_FOUND, "Resource not found")
-)
-
-app.add_exception_handler(
-    exc_class_or_status_code=ResourceAlreadyExistsError,
-    handler=create_exception_handler(status.HTTP_409_CONFLICT, "Resource already exists")
-)
-
-app.add_exception_handler(
-    exc_class_or_status_code=NotEnoughRightsError,
-    handler=create_exception_handler(status.HTTP_403_FORBIDDEN, "Not enough rights to execute the operation")
-)
-
-app.add_exception_handler(
-    exc_class_or_status_code=InvalidTokenError,
-    handler=create_exception_handler(status.HTTP_401_UNAUTHORIZED, "Ivalid token")
-)
-
-app.add_exception_handler(
-    exc_class_or_status_code=InvalidCredentialsError,
-    handler=create_exception_handler(status.HTTP_401_UNAUTHORIZED, "Invalid credentials")
-)
-
-app.add_exception_handler(
-    exc_class_or_status_code=InvalidPayloadError,
-    handler=create_exception_handler(status.HTTP_422_UNPROCESSABLE_ENTITY, "Invalid payload")
-)
-
-app.add_exception_handler(
-    exc_class_or_status_code=InvalidSignatureError,
-    handler=create_exception_handler(status.HTTP_401_UNAUTHORIZED, "Invalid signature")
-)
+for exc_class, status_code, message in exception_handlers:
+    app.add_exception_handler(
+        exc_class_or_status_code=exc_class,
+        handler=create_exception_handler(status_code, message)
+    )
