@@ -1,6 +1,10 @@
+import smtplib
 from datetime import datetime, timedelta, UTC
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
 import stripe
+from jinja2 import Environment, FileSystemLoader
 from passlib.context import CryptContext
 from jose import JWTError, ExpiredSignatureError, jwt
 
@@ -57,3 +61,20 @@ def create_payment_intent(order: models.Order):
         metadata=metadata,
         api_key=settings.STRIPE_SECRET_KEY
     )
+
+def send_email(username: str, link: str, email_address: str, subject: str, template_name: str):
+    env = Environment(loader=FileSystemLoader('src/html_templates'))
+    template = env.get_template(template_name)
+    html_content = template.render(username=username, link=link)
+
+    msg = MIMEMultipart()
+    msg['From'] = settings.SMTP_MAIL
+    msg['To'] = email_address
+    msg['Subject'] = subject
+
+    msg.attach(MIMEText(html_content, 'html'))
+
+    with smtplib.SMTP(settings.SMTP_SERVER, settings.SMTP_PORT) as server:
+        server.starttls()
+        server.login(settings.SMTP_USERNAME, settings.SMTP_PASSWORD)
+        server.send_message(msg)
