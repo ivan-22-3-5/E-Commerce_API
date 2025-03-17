@@ -1,31 +1,31 @@
-from typing import Type
-
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.crud import base
+from src.crud.base import Retrievable, Deletable, Creatable
 from src.db import models
 
 
-class TokenCrud:
-    def __init__(self, model: Type[models.TokenBase]):
-        self.model = model
+class TokenCRUD(Creatable, Retrievable, Deletable):
+    model = models.TokenBase
+    key = models.TokenBase.user_id
 
-    async def get_by_user_id(self, user_id: int, db: AsyncSession) -> models.TokenBase | None:
-        return await base.get_one(select(self.model).filter(self.model.user_id == user_id), db)
-
-    async def add(self, user_id: int, token: str, db: AsyncSession):
-        await base.create(self.model(user_id=user_id,
-                                     token=token), db)
-
-    async def update(self, user_id: int, new_token: str, db: AsyncSession):
-        await base.update_property(select(self.model).filter(self.model.user_id == user_id),
-                                   'token', new_token, db)
-
-    async def delete(self, user_id: int, db: AsyncSession):
-        await base.delete(select(self.model).filter(self.model.user_id == user_id), db)
+    @classmethod
+    async def upsert(cls, token: models.TokenBase, db: AsyncSession):
+        if existing_token := await cls.get(token.user_id, db, on_not_found='return-none'):
+            existing_token.token = token.token
+        else:
+            await cls.create(token, db=db)
 
 
-confirmation_tokens = TokenCrud(models.ConfirmationToken)
-recovery_tokens = TokenCrud(models.RecoveryToken)
-refresh_tokens = TokenCrud(models.RefreshToken)
+class ConfirmationTokenCRUD(TokenCRUD):
+    model = models.ConfirmationToken
+    key = models.ConfirmationToken.user_id
+
+
+class RecoveryTokenCRUD(TokenCRUD):
+    model = models.RecoveryToken
+    key = models.RecoveryToken.user_id
+
+
+class RefreshTokenCRUD(TokenCRUD):
+    model = models.RefreshToken
+    key = models.RefreshToken.user_id

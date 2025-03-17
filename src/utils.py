@@ -62,6 +62,7 @@ def create_payment_intent(order: models.Order):
         api_key=settings.STRIPE_SECRET_KEY
     )
 
+
 def send_email(username: str, link: str, email_address: str, subject: str, template_name: str):
     env = Environment(loader=FileSystemLoader('src/html_templates'))
     template = env.get_template(template_name)

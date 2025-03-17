@@ -1,42 +1,32 @@
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.crud import base, products
+from src.crud.base import Retrievable, Creatable
+from src.crud.products import ProductCRUD
 from src.db import models
 from src.schemas.item import ItemIn
 
 
-async def get_by_user(user_id: int, db: AsyncSession) -> models.Cart | None:
-    return await base.get_one(select(models.Cart).
-                              filter(models.Cart.user_id == user_id), db)
+class CartCRUD(Creatable, Retrievable):
+    model = models.Cart
+    key = models.Cart.user_id
 
+    @classmethod
+    async def add_item(cls, user_id: int, item: ItemIn, db: AsyncSession) -> models.Cart | None:
+        cart = await cls.get(user_id, db)
+        if cart and await ProductCRUD.get(item.product_id, db):
+            cart.add_item(**item.model_dump())
+            return cart
 
-async def create(user_id: int, db: AsyncSession) -> models.Cart | None:
-    return await base.create(models.Cart(user_id=user_id), db)
+    @classmethod
+    async def remove_item(cls, user_id: int, item: ItemIn, db: AsyncSession) -> models.Cart | None:
+        cart = await cls.get(user_id, db)
+        if cart:
+            cart.remove_item(**item.model_dump())
+            return cart
 
-
-async def add_item(user_id: int, item: ItemIn, db: AsyncSession) -> models.Cart | None:
-    cart = await get_by_user(user_id, db)
-    if cart and await products.get_by_id(item.product_id, db):
-        cart.add_item(**item.model_dump())
-        await db.commit()
-        await db.refresh(cart)
-        return cart
-
-
-async def remove_item(user_id: int, item: ItemIn, db: AsyncSession) -> models.Cart | None:
-    cart = await get_by_user(user_id, db)
-    if cart:
-        cart.remove_item(**item.model_dump())
-        await db.commit()
-        await db.refresh(cart)
-        return cart
-
-
-async def clear(user_id: int, db: AsyncSession) -> models.Cart | None:
-    cart = await get_by_user(user_id, db)
-    if cart:
-        cart.clear()
-        await db.commit()
-        await db.refresh(cart)
-        return cart
+    @classmethod
+    async def clear(cls, user_id: int, db: AsyncSession) -> models.Cart | None:
+        cart = await cls.get(user_id, db)
+        if cart:
+            cart.clear()
+            return cart

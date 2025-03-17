@@ -1,29 +1,14 @@
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.crud import base
+from src.crud.base import Retrievable, Updatable, Deletable, Creatable
 from src.db import models
-from src.schemas.address import AddressIn, AddressUpdate
 
 
-async def get_by_id(address_id: int, db: AsyncSession) -> models.Address | None:
-    return await base.get_one(select(models.Address).filter(models.Address.id == address_id), db)
+class AddressCRUD(Creatable, Retrievable, Updatable, Deletable):
+    model = models.Address
+    key = models.Address.id
+    not_found_message = "Address with the given id does not exist"
 
-
-async def get_by_user(user_id: int, db: AsyncSession) -> models.Address | None:
-    return await base.get_all(select(models.Address).filter(models.Address.user_id == user_id), db)
-
-
-async def create(address: AddressIn, user_id: int, db: AsyncSession) -> models.Address | None:
-    return await base.create(models.Address(
-        user_id=user_id,
-        **address.model_dump()
-    ), db)
-
-
-async def update(address_id: int, address_update: AddressUpdate, db: AsyncSession) -> models.Address | None:
-    return await base.update(select(models.Address).filter(models.Address.id == address_id), address_update, db)
-
-
-async def delete(address_id: int, db: AsyncSession):
-    await base.delete(select(models.Address).filter(models.Address.id == address_id), db)
+    @classmethod
+    async def get_by_user(cls, user_id: int, db: AsyncSession) -> models.Address | None:
+        return await cls._get_all(cls.model.user_id == user_id, db)
